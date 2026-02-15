@@ -89,17 +89,9 @@ const II = {
   ChevR: p=><Ic {...p} ch={<path d="m9 18 6-6-6-6"/>}/>,
 };
 
-// Gas cylinder SVG logo
-const CylinderLogo = ({ s = 32, className = "" }) => (
-  <svg width={s} height={s} viewBox="0 0 48 48" fill="none" className={className}>
-    <rect x="14" y="10" width="20" height="30" rx="4" fill="#1e3a5f" stroke="#0f2557" strokeWidth="2"/>
-    <rect x="18" y="6" width="12" height="6" rx="2" fill="#2a4a7f"/>
-    <rect x="22" y="2" width="4" height="5" rx="1.5" fill="#dc2626"/>
-    <ellipse cx="24" cy="10" rx="10" ry="2" fill="#2a4a7f" opacity="0.5"/>
-    <rect x="17" y="20" width="14" height="2" rx="1" fill="#ffffff" opacity="0.3"/>
-    <rect x="17" y="25" width="14" height="2" rx="1" fill="#ffffff" opacity="0.2"/>
-    <ellipse cx="24" cy="40" rx="10" ry="2" fill="#0f2557" opacity="0.3"/>
-  </svg>
+// Logo component using uploaded image
+const AppLogo = ({ s = 32, className = "" }) => (
+  <img src="/logo.png" alt={APP} width={s} height={s} className={`rounded-full object-cover ${className}`}/>
 );
 
 /*─── Theme ──────────────────────────────────────────────────*/
@@ -124,7 +116,7 @@ function Login({onOk}){
   const go=async()=>{setErr("");setLd(true);const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});if(error){setErr(error.error_description||error.msg||JSON.stringify(error));setLd(false);return;}onOk(data.user);setLd(false);};
   return(
     <div className="min-h-screen flex items-center justify-center p-4" style={{background:`linear-gradient(135deg,${C.pri} 0%,#1a3a7a 50%,${C.pri} 100%)`}}>
-      <div className="w-full max-w-sm"><div className="text-center mb-8"><CylinderLogo s={56} className="mx-auto mb-4"/><h1 className="text-2xl font-extrabold text-white tracking-tight">{APP}</h1><p className="text-blue-200/60 text-sm mt-1">Safety Inspection Management</p></div>
+      <div className="w-full max-w-sm"><div className="text-center mb-8"><AppLogo s={56} className="mx-auto mb-4"/><h1 className="text-2xl font-extrabold text-white tracking-tight">{APP}</h1><p className="text-blue-200/60 text-sm mt-1">Safety Inspection Management</p></div>
         <div className="bg-white rounded-2xl p-6 shadow-2xl">{err&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">{err}</div>}<div className="space-y-4"><Inp label="Email" type="email" value={em} onChange={e=>setEm(e.target.value)} placeholder="you@company.com" onKeyDown={e=>e.key==="Enter"&&go()}/><Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&go()}/><button onClick={go} disabled={ld||!em||!pw} className="w-full py-3.5 text-white rounded-lg font-bold text-sm transition disabled:opacity-40 hover:opacity-90" style={{background:C.pri}}>{ld&&<II.Spin s={18} className="animate-spin inline mr-2"/>}{ld?"Signing in...":"Sign In"}</button></div></div></div>
     </div>
   );
@@ -191,7 +183,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
 
   return(
     <div className="min-h-screen" style={{background:C.bg}}>
-      <header className="sticky top-0 z-30 border-b border-slate-200" style={{background:"rgba(255,255,255,0.92)",backdropFilter:"blur(12px)"}}><div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center"><div className="flex items-center gap-3"><CylinderLogo s={36}/><div><h1 className="text-lg font-extrabold leading-tight" style={{color:C.pri}}>{APP}</h1><p className="text-[11px] text-slate-500">Welcome, {prof?.full_name||"Admin"}</p></div></div><div className="flex gap-2"><button onClick={onRecon} className="hidden sm:flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold hover:opacity-90" style={{background:C.pri}}><II.File s={16}/>Reconciliation</button><button onClick={onRecon} className="sm:hidden p-2 text-white rounded-lg" style={{background:C.pri}}><II.File s={18}/></button><button onClick={onLogout} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"><II.Out s={18} className="text-slate-500"/></button></div></div></header>
+      <header className="sticky top-0 z-30 border-b border-slate-200" style={{background:"rgba(255,255,255,0.92)",backdropFilter:"blur(12px)"}}><div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center"><div className="flex items-center gap-3"><AppLogo s={36}/><div><h1 className="text-lg font-extrabold leading-tight" style={{color:C.pri}}>{APP}</h1><p className="text-[11px] text-slate-500">Welcome, {prof?.full_name||"Admin"}</p></div></div><div className="flex gap-2"><button onClick={onRecon} className="hidden sm:flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold hover:opacity-90" style={{background:C.pri}}><II.File s={16}/>Reconciliation</button><button onClick={onRecon} className="sm:hidden p-2 text-white rounded-lg" style={{background:C.pri}}><II.File s={18}/></button><button onClick={onLogout} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"><II.Out s={18} className="text-slate-500"/></button></div></div></header>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">{[{l:"Total",v:tot,bg:C.pri},{l:"Done",v:done,bg:"#059669"},{l:"Cash",v:`₹${cash}`,bg:"#b45309"},{l:"UPI",v:`₹${upi}`,bg:"#7c3aed"}].map((s,i)=><div key={i} className="rounded-xl p-4 text-white" style={{background:s.bg}}><div className="text-[10px] font-bold uppercase tracking-wider opacity-70">{s.l}</div><div className="text-2xl font-extrabold mt-1">{s.v}</div>{s.l==="Done"&&<div className="text-xs opacity-60">Pending: {pend}</div>}</div>)}</div>
         <Tabs tabs={[{k:"jobs",l:`Jobs (${filtered.length})`},{k:"employees",l:`Team (${emps.length})`}]} a={tab} set={setTab}/>
@@ -237,9 +229,9 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
 
 /*─── Employee View ──────────────────────────────────────────*/
 function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
-  const[q,setQ]=useState("");const[pg,setPg]=useState(0);
+  const[q,setQ]=useState("");const[pg,setPg]=useState(0);const[sort,setSort]=useState("newest");
   if(!emp)return<div className="min-h-screen flex items-center justify-center" style={{background:C.bg}}><div className="text-center p-8 bg-white rounded-xl shadow"><p className="text-slate-500 mb-4">Employee not found</p>{onBack&&<button onClick={onBack} className="px-6 py-2 text-white rounded-lg text-sm" style={{background:C.pri}}>Back</button>}</div></div>;
-  const all=useMemo(()=>{if(!q)return jobs;const ql=q.toLowerCase();return jobs.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql));},[jobs,q]);
+  const all=useMemo(()=>{let r=[...jobs];if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql));}if(sort==="newest")r.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));else if(sort==="oldest")r.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));else if(sort==="status"){const o={pending:0,"in-progress":1,"customer-not-reachable":2,"customer-refused":3,rescheduled:4,completed:5};r.sort((a,b)=>(o[a.status]??9)-(o[b.status]??9));}return r;},[jobs,q,sort]);
   const pend=all.filter(j=>j.status==="pending"||j.status==="in-progress");
   const other=all.filter(j=>!["pending","in-progress"].includes(j.status));
   const shown=[...pend,...other];
@@ -267,17 +259,120 @@ function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
     <div className="min-h-screen" style={{background:C.bg}}>
       <div className="px-5 pt-4 pb-8" style={{background:`linear-gradient(135deg,${C.pri},#1a3a7a)`}}>
         <div className="max-w-2xl mx-auto"><div className="flex justify-between items-start mb-4">{onBack?<button onClick={onBack} className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm"><II.Back s={18}/>Admin</button>:<div/>}{isDirectLogin&&<button onClick={onLogout} className="p-2.5 bg-white/10 rounded-lg hover:bg-white/20"><II.Out s={18} className="text-white"/></button>}</div>
-          <div className="flex items-center gap-3 mb-5"><CylinderLogo s={40}/><div><h1 className="text-xl font-extrabold text-white">Namaste, {emp.name} 🙏</h1><p className="text-blue-200/60 text-sm">आज के काम / Today's Work</p></div></div>
+          <div className="flex items-center gap-3 mb-5"><AppLogo s={40}/><div><h1 className="text-xl font-extrabold text-white">Namaste, {emp.name} 🙏</h1><p className="text-blue-200/60 text-sm">आज के काम / Today's Work</p></div></div>
           <div className="flex gap-4"><div className="bg-white/10 backdrop-blur rounded-xl px-5 py-3 text-white flex-1 text-center"><div className="text-2xl font-extrabold">{pendC}</div><div className="text-[10px] uppercase opacity-50">Pending</div></div><div className="bg-emerald-500/90 rounded-xl px-5 py-3 text-white flex-1 text-center"><div className="text-2xl font-extrabold">{doneC}</div><div className="text-[10px] uppercase opacity-50">Done</div></div></div>
         </div>
       </div>
       <div className="max-w-2xl mx-auto px-5 pb-10 -mt-4">
-        <div className="relative mb-5"><II.Search s={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/><input className="w-full pl-10 pr-4 py-3.5 bg-white rounded-xl border border-slate-200 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search name, phone, CUID, address..." value={q} onChange={e=>{setQ(e.target.value);setPg(0);}}/></div>
+        <div className="flex gap-2 mb-5"><div className="relative flex-1"><II.Search s={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/><input className="w-full pl-10 pr-4 py-3.5 bg-white rounded-xl border border-slate-200 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search name, phone, CUID..." value={q} onChange={e=>{setQ(e.target.value);setPg(0);}}/></div><select className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 min-w-[90px]" value={sort} onChange={e=>{setSort(e.target.value);setPg(0);}}><option value="newest">Latest ↓</option><option value="oldest">Oldest ↑</option><option value="status">Status</option></select></div>
         {paged.length===0&&!q&&<div className="bg-white rounded-xl p-12 text-center shadow-sm"><div className="text-5xl mb-3">🎉</div><h3 className="text-xl font-bold mb-1">बधाई हो! All Done!</h3><p className="text-slate-500">No pending jobs</p></div>}
         {paged.length===0&&q&&<div className="bg-white rounded-xl p-8 text-center shadow-sm"><p className="text-slate-400">No results for "{q}"</p></div>}
         <div className="space-y-3">{paged.map(j=><JobCard key={j.id} j={j}/>)}</div>
         <Pager page={pg} setPage={setPg} total={shown.length}/>
       </div>
+    </div>
+  );
+}
+
+/*─── Full Hindi Checklist ────────────────────────────────────*/
+const checklistSections = [
+  { title: "(अ) सिंगल / डी.बी.सी.", items: [
+    "सिलेण्डर खड़ी (सीधी) अवस्था में रखा है।",
+    "सिलेण्डर खुले वातावरण (धूप, ताप, वर्षा, धूल से प्रभावित) में रखा है।",
+    "सिलेण्डर बन्द जगह / अलमारी / खाने में रखा है।",
+    "सिलेण्डर प्रेशर रेग्युलेटर एवं रबड़ट्यूब इस प्रकार लगाये गए है ताकि आवश्यकतानुसार आसानी से हटाया जा सके।",
+    "सिलेण्डर के निकट ज्वलनशील पदार्थ / वस्तु, मिट्टी का तेल, कपड़े के थैले, कागज आदि रखे है।",
+    "क्या प्रत्येक सिलेण्डर के साथ सुरक्षा कैप लगी है।",
+  ]},
+  { title: "(ब) प्रेशर रेग्युलेटर", items: [
+    "क्या प्रेशर रेग्युलेटर की सही ढंग से सिलेण्डर / रबड ट्यूब के साथ लगा हुआ है।",
+    "क्या प्रेशर रेग्युलेटर सही अवस्था में है, रेग्युलेटर नॉब श्वास छिद्र (ब्रिदर हॉल) तथा बन्द करने की पद्धति सुचारू है।",
+  ]},
+  { title: "(स) रबड़ ट्यूब", items: [
+    "रबड ट्यूब आई.एस.आई. / बी.आई.एस. द्वारा अनुमोदित है।",
+    "रबड ट्यूब अच्छी हालत (क्रेक अथवा क्षतिग्रस्त नहीं) में है।",
+    "रबड ट्यूब की लम्बाई (1 से 1.5 मीटर) उपयुक्त है।",
+    "रबड ट्यूब पर धातु का आवरण / अन्य खोल चढ़ा हुआ है।",
+  ]},
+  { title: "(द) चुल्हा", items: [
+    "चुल्हा आई.एस. आई. द्वारा अनुमोदित है।",
+    "चूल्हा सिलेण्डर से अधिक ऊँचाई पर रखा हुआ है।",
+    "चूल्हे की सफाई तथा सर्विसिंग करें।",
+    "सफाई के उपरान्त / बाद चूल्हा फुल(पुरी) तथा सिमर अवस्था में संतोषजनक कार्य कर रहा है।",
+  ]},
+  { title: "(य) रसोई घर सम्बन्धी (सामान्य)", items: [
+    "रसोई घर में हवा के आगमन (आने-जाने) के पर्याप्त साधन है।",
+    "रसोई घर में एक से अधिक गैस कनेक्शन अथवा अन्य ईंधन जैसे मिट्टी का तेल का प्रयोग में लाया जा रहा है।",
+    "रसोई घर में पूजा का दीपक / लैम्प है।",
+    "रेफ्रिजरेटर भी रसोई में रखा है।",
+  ]},
+  { title: "(र) शैक्षणिक (उपभोक्ता से पूछें)", items: [
+    "क्या उसे सही ढंग से प्रेशर रेग्युलेटर का प्रयोग (लगाना/हटाना) आता है।",
+    "सप्लाई लेने के पूर्व सिलेण्डर की जाँच कराने के महत्व का पता है।",
+    "सिलेण्डर लगाने/हटाने के समय क्या-क्या सावधानियाँ रखनी चाहिए।",
+    "कार्य समाप्त होने/रात को सोने से पूर्व रेग्युलेटर को बन्द किया जाता है।",
+    "सुरक्षा कैप के महत्व का पता है।",
+    "आपातकालीन स्थिति में क्या करना चाहिए।",
+  ]},
+];
+
+function FullChecklist({ onDone }) {
+  const totalQ = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
+  const [answers, setAnswers] = useState({});
+  const answered = Object.keys(answers).length;
+  const allDone = answered === totalQ;
+
+  const toggle = (key, val) => setAnswers(p => ({ ...p, [key]: val }));
+
+  return (
+    <div>
+      <div className="text-center mb-5">
+        <h2 className="text-xl font-extrabold">निरीक्षण चेकलिस्ट</h2>
+        <p className="text-sm text-slate-500 mt-1">{answered}/{totalQ} answered</p>
+        <div className="mt-3 bg-slate-200 rounded-full h-2 overflow-hidden">
+          <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${totalQ ? (answered / totalQ) * 100 : 0}%` }} />
+        </div>
+      </div>
+      {checklistSections.map((sec, si) => (
+        <div key={si} className="mb-5">
+          <div className="px-3 py-2 rounded-lg mb-2 text-sm font-bold text-white" style={{ background: C.pri }}>{sec.title}</div>
+          <div className="space-y-2">
+            {sec.items.map((q, qi) => {
+              const key = `${si}-${qi}`;
+              const val = answers[key];
+              return (
+                <div key={key} className={`bg-white rounded-xl border-2 p-4 transition ${val != null ? (val ? "border-emerald-300" : "border-red-300") : "border-slate-200"}`}>
+                  <p className="text-sm font-medium text-slate-800 mb-3 leading-relaxed">{qi + 1}. {q}</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => toggle(key, true)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${val === true ? "bg-emerald-600 text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}><II.Ok s={16} />हाँ</button>
+                    <button onClick={() => toggle(key, false)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${val === false ? "text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`} style={val === false ? { background: C.red } : {}}><II.No s={16} />नहीं</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      {allDone ? (
+        <button onClick={() => {
+          const result = {};
+          checklistSections.forEach((sec, si) => {
+            sec.items.forEach((q, qi) => {
+              result[`s${si}_q${qi}`] = answers[`${si}-${qi}`];
+            });
+          });
+          result.yes_count = Object.values(answers).filter(v => v === true).length;
+          result.no_count = Object.values(answers).filter(v => v === false).length;
+          result.total = totalQ;
+          onDone(result);
+        }} className="w-full py-5 rounded-xl font-extrabold text-lg text-white shadow-lg transition active:scale-[0.98]" style={{ background: C.pri }}>
+          आगे बढ़ें / Continue →
+        </button>
+      ) : (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-800">
+          <II.Warn s={16} />सभी प्रश्नों का उत्तर दें ({totalQ - answered} remaining)
+        </div>
+      )}
     </div>
   );
 }
@@ -296,28 +391,28 @@ function Inspect({job,onDone,onBack,onUpd,show}){
   const doPayDone=()=>{setRcpt(`RC${String(Math.floor(Math.random()*9999)+1).padStart(4,"0")}`);setStep("receipt");};
   const doFinal=async()=>{setSaving(true);await onDone({...cl,payment_type:pay.type||"cash",payment_amount:FIXED_AMT,upi_transaction_id:pay.upi||null,receipt_number:rcpt,status:"completed",completed_time:new Date().toISOString()});setSaving(false);};
   const shareR=()=>{const m=`${APP}\nReceipt: ${rcpt}\nCustomer: ${job.customer_name||"N/A"}\n${job.consumer_id?`CUID: ${job.consumer_id}\n`:""}Address: ${job.address}\nAmount: ₹${FIXED_AMT} (${(pay.type||"cash").toUpperCase()})\nDate: ${new Date().toLocaleDateString("en-IN")}`;window.open(`https://wa.me/?text=${encodeURIComponent(m)}`,"_blank");};
-  const printR=()=>{const w=window.open("","_blank","width=400,height=600");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Receipt ${rcpt}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;max-width:400px;margin:0 auto}.hdr{text-align:center;border-bottom:2px solid #0f2557;padding-bottom:16px;margin-bottom:16px}.hdr h1{font-size:16px;color:#0f2557}.rcn{text-align:center;font-size:22px;font-weight:900;color:#0f2557;margin:12px 0;letter-spacing:2px}.row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #eee}.row .l{color:#666}.row .v{font-weight:600;text-align:right;max-width:55%}.amt{background:#f0fdf4;border:2px solid #059669;border-radius:8px;padding:12px;margin:16px 0;text-align:center}.amt .n{font-size:22px;font-weight:900;color:#059669}.chk{margin:16px 0;padding:12px;background:#f8f8f8;border-radius:8px}.chk h3{font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px}.chk .item{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}.ok{color:#059669;font-weight:700}.bad{color:#dc2626;font-weight:700}.ftr{text-align:center;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc;font-size:9px;color:#999}@media print{body{padding:12px}}</style></head><body><div class="hdr"><h1>${APP}</h1><p style="font-size:10px;color:#888">Gas Safety Inspection Receipt</p></div><div class="rcn">${rcpt}</div>${[["Date",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Time",new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})],["Customer",job.customer_name||"N/A"],["Address",job.address],job.consumer_id&&["CUID",job.consumer_id],job.customer_phone&&["Phone",job.customer_phone],job.gas_company_name&&["Gas Company",job.gas_company_name],job.gas_agency_name&&["Gas Agency",job.gas_agency_name]].filter(Boolean).map(([l,v])=>`<div class="row"><span class="l">${l}:</span><span class="v">${v}</span></div>`).join("")}<div class="amt"><div style="font-size:11px;color:#666;margin-bottom:4px">Amount Paid</div><div class="n">₹${FIXED_AMT}</div><div style="font-size:10px;color:#666;margin-top:4px">${(pay.type||"cash").toUpperCase()}${pay.upi?` • ${pay.upi}`:""}</div></div><div class="chk"><h3>Inspection Results</h3>${[["Gas Pipe",cl.pipe_condition,"ok"],["Leak Test",cl.leak_test,"ok"],["Regulator",cl.regulator_condition,"good"]].map(([l,v,ok])=>`<div class="item"><span>${l}</span><span class="${v===ok?"ok":"bad"}">${v===ok?"✓ OK":"✗ Issue"}</span></div>`).join("")}</div><div class="ftr">${APP}<br>Thank you</div></body></html>`);w.document.close();setTimeout(()=>w.print(),300);};
+  const printR=()=>{const w=window.open("","_blank","width=400,height=600");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Receipt ${rcpt}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;max-width:400px;margin:0 auto}.hdr{text-align:center;border-bottom:2px solid #0f2557;padding-bottom:16px;margin-bottom:16px}.hdr h1{font-size:16px;color:#0f2557}.rcn{text-align:center;font-size:22px;font-weight:900;color:#0f2557;margin:12px 0;letter-spacing:2px}.row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #eee}.row .l{color:#666}.row .v{font-weight:600;text-align:right;max-width:55%}.amt{background:#f0fdf4;border:2px solid #059669;border-radius:8px;padding:12px;margin:16px 0;text-align:center}.amt .n{font-size:22px;font-weight:900;color:#059669}.chk{margin:16px 0;padding:12px;background:#f8f8f8;border-radius:8px}.chk h3{font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px}.chk .item{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}.ok{color:#059669;font-weight:700}.bad{color:#dc2626;font-weight:700}.ftr{text-align:center;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc;font-size:9px;color:#999}@media print{body{padding:12px}}</style></head><body><div class="hdr"><h1>${APP}</h1><p style="font-size:10px;color:#888">Gas Safety Inspection Receipt</p></div><div class="rcn">${rcpt}</div>${[["Date",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Time",new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})],["Customer",job.customer_name||"N/A"],["Address",job.address],job.consumer_id&&["CUID",job.consumer_id],job.customer_phone&&["Phone",job.customer_phone],job.gas_company_name&&["Gas Company",job.gas_company_name],job.gas_agency_name&&["Gas Agency",job.gas_agency_name]].filter(Boolean).map(([l,v])=>`<div class="row"><span class="l">${l}:</span><span class="v">${v}</span></div>`).join("")}<div class="amt"><div style="font-size:11px;color:#666;margin-bottom:4px">Amount Paid</div><div class="n">₹${FIXED_AMT}</div><div style="font-size:10px;color:#666;margin-top:4px">${(pay.type||"cash").toUpperCase()}${pay.upi?` • ${pay.upi}`:""}</div></div><div class="chk"><h3>Inspection Results</h3><div class="item"><span>Total Questions</span><span>${cl.total||26}</span></div><div class="item"><span>हाँ (Yes)</span><span class="ok">✓ ${cl.yes_count||0}</span></div><div class="item"><span>नहीं (No)</span><span class="bad">✗ ${cl.no_count||0}</span></div></div><div class="ftr">${APP}<br>Thank you</div></body></html>`);w.document.close();setTimeout(()=>w.print(),300);};
 
   return(
     <div className="min-h-screen" style={{background:C.bg}}>
       <div className="px-5 pt-4 pb-6" style={{background:"linear-gradient(135deg,#059669,#047857)"}}><div className="max-w-2xl mx-auto"><button onClick={onBack} className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-3"><II.Back s={18}/>Back / वापस</button><h1 className="text-lg font-extrabold text-white">{job.address}</h1>{job.customer_name&&<p className="text-emerald-100 text-sm mt-1">{job.customer_name}{job.consumer_id?` • CUID: ${job.consumer_id}`:""}</p>}<div className="mt-3 bg-white/20 rounded-full h-2.5 overflow-hidden"><div className="h-full bg-white rounded-full transition-all duration-500" style={{width:`${prog}%`}}/></div><p className="text-emerald-100 text-xs mt-1.5">Step {steps.indexOf(step)+1}/{steps.length}</p></div></div>
       <div className="max-w-2xl mx-auto px-5 pb-10 -mt-2">
-        {step==="arrival"&&<div className="bg-white rounded-xl shadow-sm p-8 text-center"><CylinderLogo s={64} className="mx-auto mb-4"/><h2 className="text-2xl font-extrabold mb-1">क्या आप पहुँच गए?</h2><p className="text-lg text-slate-500 mb-6">Did you reach?</p><div className="bg-slate-50 rounded-xl p-4 mb-6 text-left"><p className="font-bold text-sm">{job.address}</p>{job.customer_phone&&<p className="text-sm text-slate-500 mt-1">📞 {job.customer_phone}</p>}</div>{gpsErr&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4 text-left">{gpsErr}</div>}<BB onClick={doArrival} disabled={gpsLd} color={C.pri}>{gpsLd?<><II.Spin s={24} className="animate-spin inline mr-2"/>Getting location...</>:"Confirm Arrival / पहुँच गया"}</BB><p className="text-xs text-slate-400 mt-3">GPS location will be recorded</p></div>}
+        {step==="arrival"&&<div className="bg-white rounded-xl shadow-sm p-8 text-center"><AppLogo s={64} className="mx-auto mb-4"/><h2 className="text-2xl font-extrabold mb-1">क्या आप पहुँच गए?</h2><p className="text-lg text-slate-500 mb-6">Did you reach?</p><div className="bg-slate-50 rounded-xl p-4 mb-6 text-left"><p className="font-bold text-sm">{job.address}</p>{job.customer_phone&&<p className="text-sm text-slate-500 mt-1">📞 {job.customer_phone}</p>}</div>{gpsErr&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4 text-left">{gpsErr}</div>}<BB onClick={doArrival} disabled={gpsLd} color={C.pri}>{gpsLd?<><II.Spin s={24} className="animate-spin inline mr-2"/>Getting location...</>:"Confirm Arrival / पहुँच गया"}</BB><p className="text-xs text-slate-400 mt-3">GPS location will be recorded</p></div>}
 
         {step==="status"&&<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-xl font-extrabold text-center mb-1">क्या हुआ?</h2><p className="text-sm text-slate-500 text-center mb-6">What happened?</p><div className="space-y-3">{[{s:"completed",e:"✅",h:"काम पूरा हुआ",n:"Completed"},{s:"customer-not-reachable",e:"🚫",h:"ग्राहक नहीं मिला",n:"Not Reachable"},{s:"customer-refused",e:"🙅",h:"ग्राहक ने मना किया",n:"Refused"},{s:"rescheduled",e:"📅",h:"दोबारा करना है",n:"Reschedule"}].map(o=><button key={o.s} onClick={()=>{setJS(o.s);if(o.s==="completed")setStep("checklist");}} className={`w-full py-5 rounded-xl font-bold text-base flex items-center gap-4 px-5 border-2 transition ${jS===o.s&&o.s!=="completed"?"text-white":"border-slate-200 hover:border-slate-400"}`} style={jS===o.s&&o.s!=="completed"?{background:C.pri,borderColor:C.pri}:{}}><span className="text-2xl">{o.e}</span><div className="text-left"><div>{o.h}</div><div className="text-sm opacity-70 font-normal">{o.n}</div></div></button>)}</div>
           {jS!=="completed"&&jS!=="in-progress"&&<div className="mt-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-4"><p className="font-bold text-amber-900">Proof Required</p><div><input ref={pRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={doPhoto}/><button onClick={()=>pRef.current?.click()} disabled={uploading} className="w-full py-4 border-2 border-dashed border-amber-400 rounded-xl font-bold text-sm text-amber-700 flex items-center justify-center gap-2">{uploading?<><II.Spin s={18} className="animate-spin"/>Uploading...</>:vPhoto?<>✓ Photo Uploaded</>:<><II.Cam s={20}/>Take Photo</>}</button>{vPhoto&&<img src={vPhoto} alt="" className="mt-3 rounded-xl max-h-40 w-full object-cover"/>}</div><div><label className="block text-sm font-semibold text-amber-900 mb-1.5">Reason *</label><textarea className="w-full px-4 py-3 border border-amber-300 rounded-xl text-sm bg-white" rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Write reason..."/></div><BB onClick={doNonComplete} disabled={!vPhotoUrl||!reason} color="#b45309">Submit</BB></div>}
         </div>}
 
-        {step==="checklist"&&<div><div className="text-center mb-6"><h2 className="text-xl font-extrabold">Safety Checklist</h2><p className="text-sm text-slate-500">सेफ्टी चेकलिस्ट</p></div><CO label="गैस पाइप ठीक है?" labelEn="Gas Pipe Condition" emoji="🔧" sel={cl.pipe_condition} onSel={v=>setCl({...cl,pipe_condition:v})}/><CO label="लीक टेस्ट?" labelEn="Leak Test" emoji="🔍" sel={cl.leak_test} onSel={v=>setCl({...cl,leak_test:v})}/><CO label="रेगुलेटर?" labelEn="Regulator" emoji="⚙️" sel={cl.regulator_condition} onSel={v=>setCl({...cl,regulator_condition:v})} y="good" n="bad" yL="अच्छा / GOOD" nL="खराब / BAD"/>{cl.pipe_condition&&cl.leak_test&&cl.regulator_condition?<BB onClick={()=>setStep("payment")} color={C.pri}>Continue →</BB>:<div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-800"><II.Warn s={16}/>Complete all checks</div>}</div>}
+        {step==="checklist"&&<FullChecklist onDone={data=>{setCl(data);setStep("payment");}}/>}
 
-        {step==="payment"&&<div className="bg-white rounded-xl shadow-sm p-6"><div className="text-center mb-6"><div className="text-4xl mb-2">💰</div><h2 className="text-2xl font-extrabold">Payment</h2></div><div className="bg-slate-50 rounded-xl p-5 text-center mb-6"><p className="text-xs text-slate-500 uppercase mb-1">Fixed Amount</p><p className="text-4xl font-extrabold" style={{color:C.pri}}>₹{FIXED_AMT}</p></div><p className="text-sm font-semibold text-center mb-3 text-slate-600">Payment Method</p><div className="grid grid-cols-3 gap-3 mb-6">{[{t:"cash",e:"💵",n:"CASH"},{t:"upi",e:"📱",n:"UPI"},{t:"already-paid",e:"✅",n:"PAID"}].map(p=><button key={p.t} onClick={()=>setPay({...pay,type:p.t})} className={`py-5 rounded-xl font-bold text-sm flex flex-col items-center gap-2 border-2 transition ${pay.type===p.t?"border-emerald-600 bg-emerald-50":"border-slate-200"}`}><span className="text-2xl">{p.e}</span>{p.n}</button>)}</div>{pay.type==="upi"&&<div className="mb-5 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl"><button onClick={()=>setPay({...pay,upi:`UPI${Date.now()}`})} className="w-full py-4 border-2 border-violet-400 rounded-xl font-bold text-sm text-violet-700 flex items-center justify-center gap-2"><II.QR s={20}/>{pay.upi?"✓ Scanned":"Scan QR"}</button></div>}{pay.type&&(pay.type!=="upi"||pay.upi)&&<BB onClick={doPayDone}>Generate Receipt</BB>}</div>}
+        {step==="payment"&&<div className="bg-white rounded-xl shadow-sm p-6"><div className="text-center mb-6"><div className="text-4xl mb-2">💰</div><h2 className="text-2xl font-extrabold">Payment</h2></div><div className="bg-slate-50 rounded-xl p-5 text-center mb-6"><p className="text-xs text-slate-500 uppercase mb-1">Fixed Amount</p><p className="text-4xl font-extrabold" style={{color:C.pri}}>₹{FIXED_AMT}</p></div><p className="text-sm font-semibold text-center mb-3 text-slate-600">Payment Method</p><div className="grid grid-cols-2 gap-3 mb-6">{[{t:"cash",e:"💵",n:"CASH"},{t:"upi",e:"📱",n:"UPI"}].map(p=><button key={p.t} onClick={()=>setPay({...pay,type:p.t})} className={`py-5 rounded-xl font-bold text-sm flex flex-col items-center gap-2 border-2 transition ${pay.type===p.t?"border-emerald-600 bg-emerald-50":"border-slate-200"}`}><span className="text-2xl">{p.e}</span>{p.n}</button>)}</div>{pay.type==="upi"&&<div className="mb-5 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl"><button onClick={()=>setPay({...pay,upi:`UPI${Date.now()}`})} className="w-full py-4 border-2 border-violet-400 rounded-xl font-bold text-sm text-violet-700 flex items-center justify-center gap-2"><II.QR s={20}/>{pay.upi?"✓ Scanned":"Scan QR"}</button></div>}{pay.type&&(pay.type!=="upi"||pay.upi)&&<BB onClick={doPayDone}>Generate Receipt</BB>}</div>}
 
         {step==="receipt"&&<div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
           <div className="p-5 text-center border-b-2" style={{background:C.pri,borderColor:C.red}}><h2 className="text-lg font-extrabold text-white">{APP}</h2><p className="text-blue-200/60 text-xs">Gas Safety Inspection Receipt</p></div>
           <div className="p-5"><div className="text-center mb-4"><p className="text-2xl font-extrabold tracking-widest" style={{color:C.pri}}>{rcpt}</p></div>
             <div className="border border-slate-200 rounded-lg overflow-hidden mb-4"><table className="w-full text-sm">{[["Date",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Customer",job.customer_name||"N/A"],["Address",job.address],job.consumer_id&&["CUID",job.consumer_id],job.gas_company_name&&["Company",job.gas_company_name],job.gas_agency_name&&["Agency",job.gas_agency_name]].filter(Boolean).map(([l,v],i)=><tr key={i} className={i%2===0?"bg-slate-50":""}><td className="px-3 py-2 text-slate-500 text-xs border-r w-[35%]">{l}</td><td className="px-3 py-2 font-medium text-xs">{v}</td></tr>)}</table></div>
             <div className="bg-emerald-50 border-2 border-emerald-500 rounded-lg p-4 text-center mb-4"><p className="text-xs text-emerald-600 uppercase font-bold mb-1">Paid</p><p className="text-3xl font-extrabold text-emerald-700">₹{FIXED_AMT}</p><p className="text-xs text-emerald-600 mt-1">{(pay.type||"cash").toUpperCase()}</p></div>
-            <div className="border border-slate-200 rounded-lg p-3 mb-5"><p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Inspection</p>{[["Pipe",cl.pipe_condition,"ok"],["Leak",cl.leak_test,"ok"],["Regulator",cl.regulator_condition,"good"]].map(([l,v,ok])=><div key={l} className="flex justify-between py-1.5 text-xs"><span className="text-slate-600">{l}</span><Bdg v={v===ok?"success":"danger"}>{v===ok?"✓ OK":"✗ Issue"}</Bdg></div>)}</div>
+            <div className="border border-slate-200 rounded-lg p-3 mb-5"><p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Inspection Results</p><div className="flex justify-between py-1.5 text-xs"><span className="text-slate-600">Total Questions</span><span className="font-bold">{cl.total||26}</span></div><div className="flex justify-between py-1.5 text-xs"><span className="text-slate-600">हाँ (Yes)</span><Bdg v="success">✓ {cl.yes_count||0}</Bdg></div><div className="flex justify-between py-1.5 text-xs"><span className="text-slate-600">नहीं (No)</span><Bdg v="danger">✗ {cl.no_count||0}</Bdg></div></div>
             <div className="grid grid-cols-3 gap-2"><button onClick={shareR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1"><II.Share s={16} className="text-slate-500"/>WhatsApp</button><button onClick={printR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{color:C.pri}}><II.Pdf s={16}/>Print PDF</button><button onClick={doFinal} disabled={saving} className="py-3 text-white rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{background:"#059669"}}>{saving?<II.Spin s={16} className="animate-spin"/>:<II.Ok s={16}/>}Done</button></div>
           </div></div>}
       </div>
@@ -351,7 +446,7 @@ export default function App(){
   const onLogout=async()=>{await sb.auth.signOut();setUser(null);setProf(null);setMyEmpId(null);setView("login");};
   const onComplete=async(id,u)=>{await db.updJob(id,u);setView(myEmpId?"emp-direct":"emp");db.load();};
 
-  if(authLd)return<div className="min-h-screen flex items-center justify-center" style={{background:C.pri}}><div className="text-center"><CylinderLogo s={56} className="mx-auto mb-4"/><II.Spin s={32} className="animate-spin text-blue-400 mx-auto"/><p className="text-blue-200/50 text-sm mt-4">Loading...</p></div></div>;
+  if(authLd)return<div className="min-h-screen flex items-center justify-center" style={{background:C.pri}}><div className="text-center"><AppLogo s={56} className="mx-auto mb-4"/><II.Spin s={32} className="animate-spin text-blue-400 mx-auto"/><p className="text-blue-200/50 text-sm mt-4">Loading...</p></div></div>;
   if(view==="login"||!user)return<Login onOk={onLogin}/>;
   if(view==="emp-unlinked")return<div className="min-h-screen flex items-center justify-center p-4" style={{background:C.pri}}><div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full text-center"><h2 className="text-xl font-bold mb-2">Account Not Linked</h2><p className="text-slate-500 text-sm mb-6">Contact your admin to link your account.</p><button onClick={onLogout} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Logout</button></div></div>;
 
