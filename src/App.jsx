@@ -111,13 +111,14 @@ const Sel=({label,required,children,...p})=><div><label className="block text-xs
 function Pager({page,setPage,total}){const pages=Math.ceil(total/PAGE_SZ);if(pages<=1)return null;return<div className="flex items-center justify-center gap-2 mt-4"><button onClick={()=>setPage(Math.max(0,page-1))} disabled={page===0} className="p-2 rounded-lg border disabled:opacity-30 hover:bg-slate-50"><II.ChevL s={18}/></button><span className="text-sm font-medium text-slate-600">{page+1} / {pages}</span><button onClick={()=>setPage(Math.min(pages-1,page+1))} disabled={page>=pages-1} className="p-2 rounded-lg border disabled:opacity-30 hover:bg-slate-50"><II.ChevR s={18}/></button></div>;}
 
 /*─── Login ──────────────────────────────────────────────────*/
-function Login({onOk}){
+function Login({onOk,onBack}){
   const[em,setEm]=useState("");const[pw,setPw]=useState("");const[ld,setLd]=useState(false);const[err,setErr]=useState("");
   const go=async()=>{setErr("");setLd(true);const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});if(error){setErr(error.error_description||error.msg||JSON.stringify(error));setLd(false);return;}onOk(data.user);setLd(false);};
   return(
     <div className="min-h-screen flex items-center justify-center p-4" style={{background:`linear-gradient(135deg,${C.pri} 0%,#1a3a7a 50%,${C.pri} 100%)`}}>
       <div className="w-full max-w-sm"><div className="text-center mb-8"><AppLogo s={56} className="mx-auto mb-4"/><h1 className="text-2xl font-extrabold text-white tracking-tight">{APP}</h1><p className="text-blue-200/60 text-sm mt-1">Safety Inspection Management</p></div>
-        <div className="bg-white rounded-2xl p-6 shadow-2xl">{err&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">{err}</div>}<div className="space-y-4"><Inp label="Email" type="email" value={em} onChange={e=>setEm(e.target.value)} placeholder="you@company.com" onKeyDown={e=>e.key==="Enter"&&go()}/><Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&go()}/><button onClick={go} disabled={ld||!em||!pw} className="w-full py-3.5 text-white rounded-lg font-bold text-sm transition disabled:opacity-40 hover:opacity-90" style={{background:C.pri}}>{ld&&<II.Spin s={18} className="animate-spin inline mr-2"/>}{ld?"Signing in...":"Sign In"}</button></div></div></div>
+        <div className="bg-white rounded-2xl p-6 shadow-2xl">{err&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">{err}</div>}<div className="space-y-4"><Inp label="Email" type="email" value={em} onChange={e=>setEm(e.target.value)} placeholder="you@company.com" onKeyDown={e=>e.key==="Enter"&&go()}/><Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&go()}/><button onClick={go} disabled={ld||!em||!pw} className="w-full py-3.5 text-white rounded-lg font-bold text-sm transition disabled:opacity-40 hover:opacity-90" style={{background:C.pri}}>{ld&&<II.Spin s={18} className="animate-spin inline mr-2"/>}{ld?"Signing in...":"Sign In"}</button></div></div>
+        {onBack&&<button onClick={onBack} className="w-full mt-4 text-center text-blue-200/60 text-sm hover:text-white transition flex items-center justify-center gap-1"><II.Back s={16}/>Back to Home</button>}</div>
     </div>
   );
 }
@@ -169,6 +170,8 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const[showE,setShowE]=useState(false);const[showJ,setShowJ]=useState(false);const[showAcct,setShowAcct]=useState(false);const[editJob,setEditJob]=useState(null);const[delT,setDelT]=useState(null);const[delE,setDelE]=useState(null);
   const[tab,setTab]=useState("jobs");const[jTab,setJTab]=useState("single");const[nE,setNE]=useState({name:"",phone:"",area:""});const[bulk,setBulk]=useState("");
   const[pg,setPg]=useState(0);const[q,setQ]=useState("");const[fAg,setFAg]=useState("");const[fDC,setFDC]=useState("");const[fDA,setFDA]=useState("");const[showF,setShowF]=useState(false);
+  const[sel,setSel]=useState(new Set());const[assignTo,setAssignTo]=useState("");const[assigning,setAssigning]=useState(false);
+  const csvRef=useRef(null);
 
   const agencies=useMemo(()=>[...new Set(jobs.map(j=>j.gas_agency_name).filter(Boolean))].sort(),[jobs]);
   const filtered=useMemo(()=>{let r=jobs;if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql)||(j.area||"").toLowerCase().includes(ql));}if(fAg)r=r.filter(j=>j.gas_agency_name===fAg);if(fDC)r=r.filter(j=>j.completed_time&&j.completed_time.startsWith(fDC));if(fDA)r=r.filter(j=>j.created_at&&j.created_at.startsWith(fDA));return r;},[jobs,q,fAg,fDC,fDA]);
@@ -177,8 +180,29 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const cash=jobs.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const upi=jobs.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const eName=id=>emps.find(e=>e.id===id)?.name||"—";
+  const unassigned=filtered.filter(j=>!j.assigned_to);
   const doAddE=async()=>{if(nE.name&&nE.phone){await onAddEmp(nE);setNE({name:"",phone:"",area:""});setShowE(false);}};
-  const doBulk=async()=>{const arr=[];bulk.trim().split("\n").forEach(l=>{const p=l.split(",").map(s=>s.trim());if(p.length<3)return;const[addr,custName,custPhone,cuid,gasCo,gasAg,empName,area]=p;const e=emps.find(x=>x.name===empName||x.id===empName);if(addr&&e)arr.push({address:addr,customer_name:custName||null,customer_phone:custPhone||null,consumer_id:cuid||null,gas_company_name:gasCo||null,gas_agency_name:gasAg||null,assigned_to:e.id,area:area||null});});if(arr.length){await onBulk(arr);setBulk("");setShowJ(false);}else show("No valid rows. Check format.","error");};
+
+  const parseCsvText=(text)=>{
+    const arr=[];const lines=text.trim().split("\n");
+    lines.forEach((l,i)=>{
+      if(i===0&&l.toLowerCase().includes("address"))return; // skip header
+      const p=l.split(",").map(s=>s.trim().replace(/^"|"$/g,'')); if(p.length<2)return;
+      const[addr,custName,custPhone,cuid,gasCo,gasAg,empName,area]=p;
+      const e=empName?emps.find(x=>x.name.toLowerCase()===empName.toLowerCase()||x.id===empName):null;
+      if(addr)arr.push({address:addr,customer_name:custName||null,customer_phone:custPhone||null,consumer_id:cuid||null,gas_company_name:gasCo||null,gas_agency_name:gasAg||null,assigned_to:e?e.id:null,area:area||null});
+    });
+    return arr;
+  };
+
+  const doBulk=async()=>{const arr=parseCsvText(bulk);if(arr.length){await onBulk(arr);setBulk("");setShowJ(false);}else show("No valid rows. Check format.","error");};
+
+  const handleCsvFile=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{setBulk(ev.target.result);};r.readAsText(f);e.target.value="";};
+
+  const doAssign=async()=>{if(!assignTo||sel.size===0)return;setAssigning(true);for(const id of sel){await onUpdJob(id,{assigned_to:assignTo});}setSel(new Set());setAssignTo("");setAssigning(false);show(`${sel.size} jobs assigned!`,"success");};
+
+  const toggleSel=id=>setSel(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
+  const toggleAll=()=>{if(sel.size===paged.length)setSel(new Set());else setSel(new Set(paged.map(j=>j.id)));};
   const hasFilters=fAg||fDC||fDA;
 
   return(
@@ -199,15 +223,18 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Date Added</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-sm" value={fDA} onChange={e=>{setFDA(e.target.value);setPg(0);}}/></div>
             {hasFilters&&<button onClick={()=>{setFAg("");setFDC("");setFDA("");}} className="text-xs text-red-600 font-semibold underline">Clear filters</button>}
           </div>}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="bg-slate-50 border-b">{["Address","CUID","Assigned","Status","GPS",""].map((h,i)=><th key={i} className={`text-left p-3 font-semibold text-slate-500 text-[11px] uppercase ${i>1&&i<5?"hidden md:table-cell":""}`}>{h}</th>)}</tr></thead>
-            <tbody>{paged.map(j=><tr key={j.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+          {sel.size>0&&<div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex flex-col sm:flex-row items-start sm:items-center gap-3"><p className="text-sm font-semibold text-blue-800">{sel.size} job{sel.size>1?"s":""} selected</p><div className="flex gap-2 flex-1 items-center"><select className="px-3 py-2 border border-blue-300 rounded-lg text-sm bg-white flex-1" value={assignTo} onChange={e=>setAssignTo(e.target.value)}><option value="">Assign to...</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select><button onClick={doAssign} disabled={!assignTo||assigning} className="px-4 py-2 text-white rounded-lg text-sm font-semibold disabled:opacity-40" style={{background:C.pri}}>{assigning?"Assigning...":"Assign"}</button><button onClick={()=>setSel(new Set())} className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-500">Cancel</button></div></div>}
+          {unassigned.length>0&&sel.size===0&&<div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 flex items-center gap-2 text-xs text-amber-800"><II.Warn s={14}/><span className="font-semibold">{unassigned.length} unassigned job{unassigned.length>1?"s":""}.</span> Select jobs using checkboxes to bulk assign.</div>}
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="bg-slate-50 border-b"><th className="p-3 w-10"><input type="checkbox" checked={paged.length>0&&sel.size===paged.length} onChange={toggleAll} className="rounded"/></th>{["Address","CUID","Assigned","Status","GPS",""].map((h,i)=><th key={i} className={`text-left p-3 font-semibold text-slate-500 text-[11px] uppercase ${i>1&&i<5?"hidden md:table-cell":""}`}>{h}</th>)}</tr></thead>
+            <tbody>{paged.map(j=><tr key={j.id} className={`border-b border-slate-100 hover:bg-slate-50/50 ${sel.has(j.id)?"bg-blue-50/50":""} ${!j.assigned_to?"bg-amber-50/30":""}`}>
+              <td className="p-3"><input type="checkbox" checked={sel.has(j.id)} onChange={()=>toggleSel(j.id)} className="rounded"/></td>
               <td className="p-3"><div className="font-medium text-sm">{j.address}</div><div className="text-xs text-slate-500 mt-0.5">{[j.customer_name,j.customer_phone].filter(Boolean).join(" • ")}</div>{j.gas_agency_name&&<div className="text-[11px] text-slate-400">{j.gas_agency_name}</div>}</td>
               <td className="p-3 text-slate-600 font-mono text-xs">{j.consumer_id||"—"}</td>
-              <td className="p-3 text-slate-600 hidden md:table-cell text-xs">{eName(j.assigned_to)}</td>
+              <td className="p-3 text-slate-600 hidden md:table-cell text-xs">{j.assigned_to?eName(j.assigned_to):<span className="text-amber-600 font-semibold">Unassigned</span>}</td>
               <td className="p-3 hidden md:table-cell"><SBadge s={j.status}/></td>
               <td className="p-3 hidden md:table-cell">{j.gps_lat?<a href={`https://www.google.com/maps?q=${j.gps_lat},${j.gps_lng}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs flex items-center gap-1"><II.Map s={14}/>View</a>:<span className="text-slate-300 text-xs">—</span>}</td>
               <td className="p-3"><div className="flex gap-1"><button onClick={()=>setEditJob(j)} className="p-1.5 rounded hover:bg-slate-100"><II.Edit s={15} className="text-slate-400"/></button><button onClick={()=>setDelT(j.id)} className="p-1.5 rounded hover:bg-red-50"><II.Trash s={15} className="text-slate-400 hover:text-red-500"/></button></div></td>
-            </tr>)}{paged.length===0&&<tr><td colSpan={6} className="p-12 text-center text-slate-400">{q||hasFilters?"No matching jobs":"No jobs yet"}</td></tr>}</tbody></table></div></div>
+            </tr>)}{paged.length===0&&<tr><td colSpan={7} className="p-12 text-center text-slate-400">{q||hasFilters?"No matching jobs":"No jobs yet"}</td></tr>}</tbody></table></div></div>
           <Pager page={pg} setPage={setPg} total={filtered.length}/>
         </div>}
 
@@ -218,7 +245,13 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
           </div>})}</div></div>}
       </div>
       <Modal open={showE} close={()=>setShowE(false)} title="Add Employee"><div className="space-y-4"><Inp label="Name" required value={nE.name} onChange={e=>setNE({...nE,name:e.target.value})} placeholder="Ramesh Kumar"/><Inp label="Phone" required value={nE.phone} onChange={e=>setNE({...nE,phone:e.target.value})} placeholder="9876543210"/><Inp label="Area" value={nE.area} onChange={e=>setNE({...nE,area:e.target.value})} placeholder="Rohini"/><button onClick={doAddE} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Add Employee</button></div></Modal>
-      <Modal open={showJ} close={()=>setShowJ(false)} title="Create Job" wide><Tabs tabs={[{k:"single",l:"Single"},{k:"bulk",l:"Bulk Upload"}]} a={jTab} set={setJTab}/>{jTab==="single"?<div className="mt-4"><JobForm emps={emps} onSave={async f=>{await onAddJob(f);setShowJ(false);}}/></div>:<div className="mt-4 space-y-3"><div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800"><p className="font-semibold mb-1">CSV Format (8 columns):</p><p className="font-mono">address, customer_name, phone, CUID, gas_company, gas_agency, employee_name, area</p></div><textarea className="w-full px-3 py-3 border rounded-lg text-sm font-mono" rows={8} value={bulk} onChange={e=>setBulk(e.target.value)} placeholder={"House 21 Rohini, Sharma ji, 9876543210, 100234, IGL, Delhi Gas, Ramesh Kumar, Rohini"}/><button onClick={doBulk} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Upload Jobs</button></div>}</Modal>
+      <Modal open={showJ} close={()=>setShowJ(false)} title="Create Job" wide><Tabs tabs={[{k:"single",l:"Single"},{k:"bulk",l:"Bulk Upload"}]} a={jTab} set={setJTab}/>{jTab==="single"?<div className="mt-4"><JobForm emps={emps} onSave={async f=>{await onAddJob(f);setShowJ(false);}}/></div>:<div className="mt-4 space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800"><p className="font-semibold mb-1">CSV Format (8 columns):</p><p className="font-mono">address, customer_name, phone, CUID, gas_company, gas_agency, employee_name, area</p><p className="mt-1 text-blue-600">Employee name is optional — unassigned jobs can be bulk-assigned later from the jobs table.</p></div>
+        <div className="flex gap-2"><input ref={csvRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleCsvFile}/><button onClick={()=>csvRef.current?.click()} className="flex-1 py-4 border-2 border-dashed border-slate-300 rounded-xl font-semibold text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-2 transition"><II.File s={18}/>{bulk?"✓ File loaded — review below":"Upload CSV File"}</button></div>
+        <div><label className="block text-xs font-semibold text-slate-500 mb-1.5">Or paste CSV data directly:</label><textarea className="w-full px-3 py-3 border rounded-lg text-sm font-mono" rows={8} value={bulk} onChange={e=>setBulk(e.target.value)} placeholder={"address, customer_name, phone, CUID, gas_company, gas_agency, employee_name, area\nHouse 21, Sharma ji, 9876543210, 100234, IGL, Delhi Gas, Ramesh Kumar, Rohini\nFlat 305, Gupta, 9876501235, 100235, IGL, East Gas, , East Delhi"}/></div>
+        {bulk&&<div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600"><p className="font-semibold mb-1">Preview: {parseCsvText(bulk).length} valid rows found</p>{parseCsvText(bulk).filter(r=>!r.assigned_to).length>0&&<p className="text-amber-600 font-semibold">{parseCsvText(bulk).filter(r=>!r.assigned_to).length} rows without employee — will be uploaded as unassigned</p>}</div>}
+        <button onClick={doBulk} disabled={!bulk} className="w-full py-3 text-white rounded-lg font-semibold text-sm disabled:opacity-40" style={{background:C.pri}}>Upload {parseCsvText(bulk).length} Jobs</button>
+      </div>}</Modal>
       <Modal open={!!editJob} close={()=>setEditJob(null)} title="Edit Job" wide>{editJob&&<JobForm job={editJob} emps={emps} isEdit onSave={async f=>{await onUpdJob(editJob.id,f);setEditJob(null);}}/>}</Modal>
       <Confirm open={!!delT} close={()=>setDelT(null)} title="Delete Job" msg="Are you sure? This cannot be undone." danger onOk={()=>onDelJob(delT)}/>
       <Confirm open={!!delE} close={()=>setDelE(null)} title="Remove Employee" msg="This will deactivate the employee. Their jobs will remain." danger onOk={()=>onDelEmp(delE)}/>
@@ -435,19 +468,137 @@ function Recon({emps,jobs,onBack}){
   </div>);
 }
 
+/*─── Public Landing Page ─────────────────────────────────────*/
+function LandingPage({ onLogin }) {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Nav */}
+      <nav className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-3"><AppLogo s={36}/><span className="text-lg font-extrabold" style={{color:C.pri}}>{APP}</span></div>
+          <div className="flex items-center gap-3">
+            <a href="#services" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">Services</a>
+            <a href="#about" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">About</a>
+            <a href="#contact" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">Contact</a>
+            <button onClick={onLogin} className="px-5 py-2.5 text-white rounded-lg text-sm font-bold hover:opacity-90 transition" style={{background:C.pri}}>Login / Portal</button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden" style={{background:`linear-gradient(135deg,${C.pri} 0%,#1a3a7a 100%)`}}>
+        <div className="absolute inset-0 opacity-10"><div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-white blur-3xl"/><div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-blue-300 blur-3xl"/></div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 relative">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs text-blue-200 font-semibold mb-6 border border-white/20">Trusted Gas Safety Partner</div>
+            <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-6">Professional LPG<br/>Safety Inspections<br/><span style={{color:"#f87171"}}>For Every Home</span></h1>
+            <p className="text-lg text-blue-200/80 mb-8 leading-relaxed max-w-lg">Ensuring the safety of your family with certified gas pipeline inspections, equipment checks, and compliance certification — all at your doorstep.</p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a href="#contact" className="px-8 py-4 bg-white rounded-xl font-bold text-sm hover:bg-slate-50 transition text-center" style={{color:C.pri}}>Book an Inspection</a>
+              <a href="#services" className="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-bold text-sm hover:bg-white/10 transition text-center">Our Services</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="border-b border-slate-100" style={{background:C.bg}}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[{n:"10,000+",l:"Inspections Done"},{n:"50+",l:"Trained Engineers"},{n:"15+",l:"Cities Covered"},{n:"99.9%",l:"Safety Record"}].map((s,i)=><div key={i}><div className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>{s.n}</div><div className="text-sm text-slate-500 mt-1">{s.l}</div></div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Services */}
+      <section id="services" className="py-16 sm:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12"><h2 className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>Our Services</h2><p className="text-slate-500 mt-2 max-w-lg mx-auto">Comprehensive LPG safety solutions for residential and commercial properties</p></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {icon:"🔍",title:"Safety Inspection",desc:"Complete 26-point safety checklist covering cylinder, regulator, rubber tube, stove, and kitchen ventilation as per government norms."},
+              {icon:"📋",title:"Compliance Certification",desc:"Official inspection certificates with detailed reports for gas agencies, housing societies, and insurance requirements."},
+              {icon:"🔧",title:"Equipment Check",desc:"Thorough examination of pressure regulators, rubber tubes, stove burners, and gas connections for wear and damage."},
+              {icon:"📱",title:"Digital Tracking",desc:"Real-time job tracking with GPS verification, digital receipts, and WhatsApp notifications for complete transparency."},
+              {icon:"👥",title:"Bulk Inspections",desc:"Efficient handling of large-scale inspection drives for gas agencies and housing societies with dedicated team deployment."},
+              {icon:"🏠",title:"Home Visit",desc:"Convenient doorstep service — our trained engineers visit your home at your preferred time with all necessary equipment."},
+            ].map((s,i)=><div key={i} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition group">
+              <div className="text-3xl mb-4">{s.icon}</div>
+              <h3 className="font-bold text-lg mb-2" style={{color:C.pri}}>{s.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
+            </div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* About */}
+      <section id="about" className="py-16 sm:py-20" style={{background:C.bg}}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-6" style={{color:C.pri}}>Why Choose {APP}?</h2>
+              <div className="space-y-4">
+                {[
+                  {t:"Government Approved",d:"All inspections follow the official 26-point safety checklist as mandated by oil marketing companies and BIS standards."},
+                  {t:"Trained & Certified Team",d:"Our engineers undergo rigorous training and are certified for LPG safety inspection and compliance reporting."},
+                  {t:"Digital-First Approach",d:"Complete digital workflow — from job assignment to GPS-verified inspections to instant digital receipts."},
+                  {t:"Transparent Pricing",d:`Fixed inspection fee of ₹${FIXED_AMT} per household with no hidden charges. Payments via cash or UPI.`},
+                ].map((p,i)=><div key={i} className="flex gap-4"><div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{background:C.pri}}><II.Ok s={16} className="text-white"/></div><div><h4 className="font-bold text-sm">{p.t}</h4><p className="text-sm text-slate-500 mt-0.5">{p.d}</p></div></div>)}
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
+              <AppLogo s={80} className="mx-auto mb-6"/>
+              <h3 className="text-xl font-extrabold mb-2" style={{color:C.pri}}>{APP}</h3>
+              <p className="text-slate-500 text-sm mb-6">Your trusted partner for LPG safety compliance</p>
+              <div className="grid grid-cols-2 gap-3 text-center">
+                {[{v:"24/7",l:"Support"},{v:"ISO",l:"Certified"},{v:"100%",l:"Compliance"},{v:"Fast",l:"Turnaround"}].map((s,i)=><div key={i} className="bg-slate-50 rounded-lg py-3"><div className="font-extrabold" style={{color:C.pri}}>{s.v}</div><div className="text-[10px] text-slate-500 uppercase">{s.l}</div></div>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Process */}
+      <section className="py-16 sm:py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12"><h2 className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>How It Works</h2></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[{n:"1",t:"Book",d:"Schedule an inspection via phone or through your gas agency"},{n:"2",t:"Visit",d:"Our engineer arrives at your doorstep with GPS-verified check-in"},{n:"3",t:"Inspect",d:"Complete 26-point safety checklist covering all equipment"},{n:"4",t:"Certify",d:"Receive digital receipt and inspection certificate instantly"}].map((s,i)=><div key={i} className="text-center"><div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-extrabold text-lg" style={{background:i===3?C.red:C.pri}}>{s.n}</div><h3 className="font-bold mb-2">{s.t}</h3><p className="text-sm text-slate-500">{s.d}</p></div>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="py-16 sm:py-20" style={{background:C.pri}}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-4">Get In Touch</h2>
+          <p className="text-blue-200/70 mb-8 max-w-lg mx-auto">For inspection bookings, bulk enquiries, or partnership opportunities</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
+            {[{icon:"📞",label:"Phone",value:"+91-XXXXX-XXXXX"},{icon:"📧",label:"Email",value:"info@lpginspectioncare.com"},{icon:"📍",label:"Office",value:"Your City, India"}].map((c,i)=><div key={i} className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10"><div className="text-2xl mb-2">{c.icon}</div><div className="text-xs text-blue-200/60 uppercase">{c.label}</div><div className="text-white font-semibold text-sm mt-1">{c.value}</div></div>)}
+          </div>
+          <p className="text-blue-200/40 text-xs">© {new Date().getFullYear()} {APP}. All rights reserved.</p>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 /*─── Main App ───────────────────────────────────────────────*/
 export default function App(){
   const[user,setUser]=useState(null);const[prof,setProf]=useState(null);const[myEmpId,setMyEmpId]=useState(null);
   const[authLd,setAuthLd]=useState(true);const[view,setView]=useState("loading");const[selE,setSelE]=useState("");const[selJ,setSelJ]=useState("");
   const db=useData();
   const resolveRole=async u=>{setUser(u);const{data:p}=await sb.from("profiles").select("*").eq("id",u.id).single();setProf(p);if(p?.role==="employee"){const{data:el}=await sb.from("employees").select("*").eq("profile_id",u.id);if(el?.[0]){setMyEmpId(el[0].id);setView("emp-direct");}else setView("emp-unlinked");}else setView("admin");};
-  useEffect(()=>{(async()=>{const{data:{user:u}}=await sb.auth.getUser();if(u)await resolveRole(u);else setView("login");setAuthLd(false);})();},[]);
+  useEffect(()=>{(async()=>{const{data:{user:u}}=await sb.auth.getUser();if(u)await resolveRole(u);else setView("home");setAuthLd(false);})();},[]);
   const onLogin=async u=>await resolveRole(u);
-  const onLogout=async()=>{await sb.auth.signOut();setUser(null);setProf(null);setMyEmpId(null);setView("login");};
+  const onLogout=async()=>{await sb.auth.signOut();setUser(null);setProf(null);setMyEmpId(null);setView("home");};
   const onComplete=async(id,u)=>{await db.updJob(id,u);setView(myEmpId?"emp-direct":"emp");db.load();};
 
   if(authLd)return<div className="min-h-screen flex items-center justify-center" style={{background:C.pri}}><div className="text-center"><AppLogo s={56} className="mx-auto mb-4"/><II.Spin s={32} className="animate-spin text-blue-400 mx-auto"/><p className="text-blue-200/50 text-sm mt-4">Loading...</p></div></div>;
-  if(view==="login"||!user)return<Login onOk={onLogin}/>;
+
+  if(view==="home")return<LandingPage onLogin={()=>setView("login")}/>;
+  if(view==="login"&&!user)return<Login onOk={onLogin} onBack={()=>setView("home")}/>;
+  if(!user)return<LandingPage onLogin={()=>setView("login")}/>;
   if(view==="emp-unlinked")return<div className="min-h-screen flex items-center justify-center p-4" style={{background:C.pri}}><div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full text-center"><h2 className="text-xl font-bold mb-2">Account Not Linked</h2><p className="text-slate-500 text-sm mb-6">Contact your admin to link your account.</p><button onClick={onLogout} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Logout</button></div></div>;
 
   return(<div className="min-h-screen" style={{background:C.bg}}>
