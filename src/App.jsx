@@ -125,10 +125,9 @@ function Login({onOk,onBack}){
 
 /*─── Data Hook ──────────────────────────────────────────────*/
 function useData(){
-  const[emps,setEmps]=useState([]);const[jobs,setJobs]=useState([]);const[loading,setLoading]=useState(true);const[toast,setToast]=useState(null);
+  const[emps,setEmps]=useState([]);const[jobs,setJobs]=useState([]);const[loading,setLoading]=useState(false);const[toast,setToast]=useState(null);
   const show=(msg,type="info")=>setToast({msg,type});
   const load=useCallback(async()=>{setLoading(true);const[er,jr]=await Promise.all([sb.from("employees").select("*").eq("is_active",true).order("name"),sb.from("jobs").select("*").order("created_at",{ascending:false})]);if(er.data)setEmps(er.data);if(jr.data)setJobs(jr.data);setLoading(false);},[]);
-  useEffect(()=>{load();},[load]);
   const addEmp=async e=>{const{data,error}=await sb.from("employees").insert(e);if(error){show(error.message,"error");return null;}if(data?.[0])setEmps(p=>[...p,data[0]]);show("Employee added!","success");return data?.[0];};
   const addJob=async j=>{const{data,error}=await sb.from("jobs").insert(j);if(error){show(error.message,"error");return;}if(data?.[0])setJobs(p=>[data[0],...p]);show("Job created!","success");};
   const addBulk=async list=>{const{data,error}=await sb.from("jobs").insert(list);if(error){show(error.message,"error");return;}if(data)setJobs(p=>[...data,...p]);show(`${data?.length||0} jobs added!`,"success");};
@@ -170,7 +169,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const[showE,setShowE]=useState(false);const[showJ,setShowJ]=useState(false);const[showAcct,setShowAcct]=useState(false);const[editJob,setEditJob]=useState(null);const[delT,setDelT]=useState(null);const[delE,setDelE]=useState(null);
   const[tab,setTab]=useState("jobs");const[jTab,setJTab]=useState("single");const[nE,setNE]=useState({name:"",phone:"",area:""});const[bulk,setBulk]=useState("");
   const[pg,setPg]=useState(0);const[q,setQ]=useState("");const[fAg,setFAg]=useState("");const[fDC,setFDC]=useState("");const[fDA,setFDA]=useState("");const[showF,setShowF]=useState(false);
-  const[sel,setSel]=useState(new Set());const[assignTo,setAssignTo]=useState("");const[assigning,setAssigning]=useState(false);
+  const[sel,setSel]=useState(new Set());const[assignTo,setAssignTo]=useState("");const[assigning,setAssigning]=useState(false);const[bulkDel,setBulkDel]=useState(false);
   const csvRef=useRef(null);
 
   const agencies=useMemo(()=>[...new Set(jobs.map(j=>j.gas_agency_name).filter(Boolean))].sort(),[jobs]);
@@ -183,11 +182,27 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const unassigned=filtered.filter(j=>!j.assigned_to);
   const doAddE=async()=>{if(nE.name&&nE.phone){await onAddEmp(nE);setNE({name:"",phone:"",area:""});setShowE(false);}};
 
+  const parseCsvLine=(line)=>{
+    const fields=[];let cur="";let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const ch=line[i];
+      if(ch==='"'){
+        if(inQ&&line[i+1]==='"'){cur+='"';i++;}  // escaped quote ""
+        else inQ=!inQ;
+      } else if(ch===','&&!inQ){
+        fields.push(cur.trim());cur="";
+      } else {
+        cur+=ch;
+      }
+    }
+    fields.push(cur.trim());
+    return fields;
+  };
   const parseCsvText=(text)=>{
-    const arr=[];const lines=text.trim().split("\n");
+    const arr=[];const lines=text.trim().split(/\r?\n/);
     lines.forEach((l,i)=>{
       if(i===0&&l.toLowerCase().includes("address"))return; // skip header
-      const p=l.split(",").map(s=>s.trim().replace(/^"|"$/g,'')); if(p.length<2)return;
+      const p=parseCsvLine(l); if(p.length<2)return;
       const[addr,custName,custPhone,cuid,gasCo,gasAg,empName,area]=p;
       const e=empName?emps.find(x=>x.name.toLowerCase()===empName.toLowerCase()||x.id===empName):null;
       if(addr)arr.push({address:addr,customer_name:custName||null,customer_phone:custPhone||null,consumer_id:cuid||null,gas_company_name:gasCo||null,gas_agency_name:gasAg||null,assigned_to:e?e.id:null,area:area||null});
@@ -199,7 +214,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
 
   const handleCsvFile=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{setBulk(ev.target.result);};r.readAsText(f);e.target.value="";};
 
-  const doAssign=async()=>{if(!assignTo||sel.size===0)return;setAssigning(true);for(const id of sel){await onUpdJob(id,{assigned_to:assignTo});}setSel(new Set());setAssignTo("");setAssigning(false);show(`${sel.size} jobs assigned!`,"success");};
+  const doAssign=async()=>{if(!assignTo||sel.size===0)return;setAssigning(true);for(const id of sel){await onUpdJob(id,{assigned_to:assignTo});}setSel(new Set());setAssignTo("");setAssigning(false);show(`${sel.size} jobs assigned!`,"success");};const doBulkDel=async()=>{const ids=[...sel];setSel(new Set());for(const id of ids){await onDelJob(id);}show(`${ids.length} job${ids.length>1?"s":""} deleted`,"success");};
 
   const toggleSel=id=>setSel(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});
   const toggleAll=()=>{if(sel.size===paged.length)setSel(new Set());else setSel(new Set(paged.map(j=>j.id)));};
@@ -223,18 +238,18 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Date Added</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-sm" value={fDA} onChange={e=>{setFDA(e.target.value);setPg(0);}}/></div>
             {hasFilters&&<button onClick={()=>{setFAg("");setFDC("");setFDA("");}} className="text-xs text-red-600 font-semibold underline">Clear filters</button>}
           </div>}
-          {sel.size>0&&<div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex flex-col sm:flex-row items-start sm:items-center gap-3"><p className="text-sm font-semibold text-blue-800">{sel.size} job{sel.size>1?"s":""} selected</p><div className="flex gap-2 flex-1 items-center"><select className="px-3 py-2 border border-blue-300 rounded-lg text-sm bg-white flex-1" value={assignTo} onChange={e=>setAssignTo(e.target.value)}><option value="">Assign to...</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select><button onClick={doAssign} disabled={!assignTo||assigning} className="px-4 py-2 text-white rounded-lg text-sm font-semibold disabled:opacity-40" style={{background:C.pri}}>{assigning?"Assigning...":"Assign"}</button><button onClick={()=>setSel(new Set())} className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-500">Cancel</button></div></div>}
+          {sel.size>0&&<div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex flex-col sm:flex-row items-start sm:items-center gap-3"><p className="text-sm font-semibold text-blue-800">{sel.size} job{sel.size>1?"s":""} selected</p><div className="flex gap-2 flex-1 items-center"><select className="px-3 py-2 border border-blue-300 rounded-lg text-sm bg-white flex-1" value={assignTo} onChange={e=>setAssignTo(e.target.value)}><option value="">Assign to...</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select><button onClick={doAssign} disabled={!assignTo||assigning} className="px-4 py-2 text-white rounded-lg text-sm font-semibold disabled:opacity-40" style={{background:C.pri}}>{assigning?"Assigning...":"Assign"}</button><button onClick={()=>setBulkDel(true)} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold flex items-center gap-1.5"><II.Trash s={14}/>Delete</button><button onClick={()=>setSel(new Set())} className="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-500">Cancel</button></div></div>}
           {unassigned.length>0&&sel.size===0&&<div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3 flex items-center justify-between gap-2 flex-wrap"><div className="flex items-center gap-2 text-xs text-amber-800"><II.Warn s={14}/><span className="font-semibold">{unassigned.length} unassigned job{unassigned.length>1?"s":""}.</span><span className="hidden sm:inline"> Select and bulk assign below.</span></div><button onClick={()=>setSel(new Set(unassigned.map(j=>j.id)))} className="text-xs font-bold px-3 py-1.5 rounded-lg text-white whitespace-nowrap" style={{background:"#b45309"}}>Select All Unassigned ({unassigned.length})</button></div>}
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm leading-relaxed"><thead><tr className="bg-slate-50 border-b"><th className="p-3 w-10"><input type="checkbox" checked={paged.length>0&&sel.size===paged.length} onChange={toggleAll} className="rounded"/></th>{["CUID","Address","Assigned","Status","GPS",""].map((h,i)=><th key={i} className={`text-left p-3 font-bold text-slate-700 text-sm uppercase tracking-wide ${i>1&&i<4?"hidden md:table-cell":""}`}>{h}</th>)}</tr></thead>
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-sm leading-relaxed"><thead><tr className="bg-slate-50 border-b"><th className="p-3 w-10"><input type="checkbox" checked={paged.length>0&&sel.size===paged.length} onChange={toggleAll} className="rounded"/></th>{["CUID","Address","Gas Agency","Assigned","Status","GPS",""].map((h,i)=><th key={i} className={`text-left p-3 font-bold text-slate-700 text-sm uppercase tracking-wide ${i>1&&i<5?"hidden md:table-cell":""}`}>{h}</th>)}</tr></thead>
             <tbody>{paged.map(j=><tr key={j.id} className={`border-b border-slate-100 hover:bg-slate-50/50 ${sel.has(j.id)?"bg-blue-50/50":""} ${!j.assigned_to?"bg-amber-50/30":""}`}>
               <td className="p-3"><input type="checkbox" checked={sel.has(j.id)} onChange={()=>toggleSel(j.id)} className="rounded"/></td>
               <td className="p-3 align-top"><div className="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1 font-extrabold text-base text-indigo-800 font-mono tracking-wide">{j.consumer_id||<span className="text-slate-300 font-normal text-sm">—</span>}</div></td>
-              <td className="p-3 align-top"><div className="font-semibold text-sm text-slate-900">{j.address}</div>{j.customer_name&&<div className="text-sm text-slate-800 font-semibold mt-0.5">{j.customer_name}</div>}{j.customer_phone&&<div className="text-sm text-slate-800 font-semibold mt-0.5">{j.customer_phone}</div>}{j.gas_agency_name&&<div className="text-xs text-slate-400 mt-1">{j.gas_agency_name}</div>}</td>
+              <td className="p-3 align-top"><div className="font-semibold text-sm text-slate-900">{j.address}</div>{j.customer_name&&<div className="text-sm text-slate-800 font-semibold mt-0.5">{j.customer_name}</div>}{j.customer_phone&&<div className="text-sm text-slate-800 font-semibold mt-0.5">{j.customer_phone}</div>}</td><td className="p-3 align-top hidden md:table-cell"><div className="text-sm font-semibold text-slate-800">{j.gas_agency_name||<span className="text-slate-300">—</span>}</div>{j.gas_company_name&&<div className="text-xs text-slate-400 mt-0.5">{j.gas_company_name}</div>}</td>
               <td className="p-3 align-top hidden md:table-cell"><span className="text-base font-semibold text-slate-700">{j.assigned_to?eName(j.assigned_to):<span className="text-amber-600 font-bold">Unassigned</span>}</span></td>
               <td className="p-3 align-top hidden md:table-cell"><SBadge s={j.status}/></td>
               <td className="p-3 hidden md:table-cell">{j.gps_lat?<a href={`https://www.google.com/maps?q=${j.gps_lat},${j.gps_lng}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm font-medium flex items-center gap-1"><II.Map s={14}/>View</a>:<span className="text-slate-300 text-sm">—</span>}</td>
               <td className="p-3"><div className="flex gap-1"><button onClick={()=>setEditJob(j)} className="p-1.5 rounded hover:bg-slate-100"><II.Edit s={15} className="text-slate-400"/></button><button onClick={()=>setDelT(j.id)} className="p-1.5 rounded hover:bg-red-50"><II.Trash s={15} className="text-slate-400 hover:text-red-500"/></button></div></td>
-            </tr>)}{paged.length===0&&<tr><td colSpan={7} className="p-12 text-center text-slate-400 text-base font-medium">{q||hasFilters?"No matching jobs":"No jobs yet"}</td></tr>}</tbody></table></div></div>
+            </tr>)}{paged.length===0&&<tr><td colSpan={8} className="p-12 text-center text-slate-400 text-base font-medium">{q||hasFilters?"No matching jobs":"No jobs yet"}</td></tr>}</tbody></table></div></div>
           <Pager page={pg} setPage={setPg} total={filtered.length}/>
         </div>}
 
@@ -253,7 +268,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
         <button onClick={doBulk} disabled={!bulk} className="w-full py-3 text-white rounded-lg font-semibold text-sm disabled:opacity-40" style={{background:C.pri}}>Upload {parseCsvText(bulk).length} Jobs</button>
       </div>}</Modal>
       <Modal open={!!editJob} close={()=>setEditJob(null)} title="Edit Job" wide>{editJob&&<JobForm job={editJob} emps={emps} isEdit onSave={async f=>{await onUpdJob(editJob.id,f);setEditJob(null);}}/>}</Modal>
-      <Confirm open={!!delT} close={()=>setDelT(null)} title="Delete Job" msg="Are you sure? This cannot be undone." danger onOk={()=>onDelJob(delT)}/>
+      <Confirm open={!!delT} close={()=>setDelT(null)} title="Delete Job" msg="Are you sure? This cannot be undone." danger onOk={()=>onDelJob(delT)}/><Confirm open={bulkDel} close={()=>setBulkDel(false)} title={`Delete ${sel.size} Job${sel.size>1?"s":""}`} msg={`Permanently delete ${sel.size} selected job${sel.size>1?"s":""}? This cannot be undone.`} danger onOk={doBulkDel}/>
       <Confirm open={!!delE} close={()=>setDelE(null)} title="Remove Employee" msg="This will deactivate the employee. Their jobs will remain." danger onOk={()=>onDelEmp(delE)}/>
       <CreateEmpAccountModal open={showAcct} close={()=>setShowAcct(false)} employees={emps} show={show}/>
     </div>
@@ -651,7 +666,7 @@ export default function App(){
   const[user,setUser]=useState(null);const[prof,setProf]=useState(null);const[myEmpId,setMyEmpId]=useState(null);
   const[authLd,setAuthLd]=useState(true);const[view,setView]=useState("loading");const[selE,setSelE]=useState("");const[selJ,setSelJ]=useState("");
   const db=useData();
-  const resolveRole=async u=>{setUser(u);const{data:p}=await sb.from("profiles").select("*").eq("id",u.id).single();setProf(p);if(p?.role==="employee"){const{data:el}=await sb.from("employees").select("*").eq("profile_id",u.id);if(el?.[0]){setMyEmpId(el[0].id);setView("emp-direct");}else setView("emp-unlinked");}else setView("admin");};
+  const resolveRole=async u=>{setUser(u);const{data:p}=await sb.from("profiles").select("*").eq("id",u.id).single();setProf(p);if(p?.role==="employee"){const{data:el}=await sb.from("employees").select("*").eq("profile_id",u.id);if(el?.[0]){setMyEmpId(el[0].id);await db.load();setView("emp-direct");}else setView("emp-unlinked");}else{await db.load();setView("admin");}};
   useEffect(()=>{(async()=>{const{data:{user:u}}=await sb.auth.getUser();if(u)await resolveRole(u);else setView("home");setAuthLd(false);})();},[]);
   const onLogin=async u=>await resolveRole(u);
   const onLogout=async()=>{await sb.auth.signOut();setUser(null);setProf(null);setMyEmpId(null);setView("home");};
