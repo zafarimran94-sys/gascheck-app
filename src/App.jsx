@@ -424,7 +424,69 @@ function Inspect({job,onDone,onBack,onUpd,show}){
   const doPayDone=()=>{setRcpt(`RC${String(Math.floor(Math.random()*9999)+1).padStart(4,"0")}`);setStep("receipt");};
   const doFinal=async()=>{setSaving(true);await onDone({...cl,payment_type:pay.type||"cash",payment_amount:FIXED_AMT,upi_transaction_id:pay.upi||null,receipt_number:rcpt,status:"completed",completed_time:new Date().toISOString()});setSaving(false);};
   const shareR=()=>{const m=`${APP}\nReceipt: ${rcpt}\nCustomer: ${job.customer_name||"N/A"}\n${job.consumer_id?`CUID: ${job.consumer_id}\n`:""}Address: ${job.address}\nAmount: ₹${FIXED_AMT} (${(pay.type||"cash").toUpperCase()})\nDate: ${new Date().toLocaleDateString("en-IN")}`;window.open(`https://wa.me/?text=${encodeURIComponent(m)}`,"_blank");};
-  const printR=()=>{const w=window.open("","_blank","width=400,height=600");if(!w)return;w.document.write(`<!DOCTYPE html><html><head><title>Receipt ${rcpt}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:24px;max-width:400px;margin:0 auto}.hdr{text-align:center;border-bottom:2px solid #0f2557;padding-bottom:16px;margin-bottom:16px}.hdr h1{font-size:16px;color:#0f2557}.rcn{text-align:center;font-size:22px;font-weight:900;color:#0f2557;margin:12px 0;letter-spacing:2px}.row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid #eee}.row .l{color:#666}.row .v{font-weight:600;text-align:right;max-width:55%}.amt{background:#f0fdf4;border:2px solid #059669;border-radius:8px;padding:12px;margin:16px 0;text-align:center}.amt .n{font-size:22px;font-weight:900;color:#059669}.chk{margin:16px 0;padding:12px;background:#f8f8f8;border-radius:8px}.chk h3{font-size:11px;text-transform:uppercase;color:#666;margin-bottom:8px}.chk .item{display:flex;justify-content:space-between;padding:3px 0;font-size:11px}.ok{color:#059669;font-weight:700}.bad{color:#dc2626;font-weight:700}.ftr{text-align:center;margin-top:16px;padding-top:12px;border-top:1px dashed #ccc;font-size:9px;color:#999}@media print{body{padding:12px}}</style></head><body><div class="hdr"><h1>${APP}</h1><p style="font-size:10px;color:#888">Gas Safety Inspection Receipt</p></div><div class="rcn">${rcpt}</div>${[["Date",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Time",new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})],["Customer",job.customer_name||"N/A"],["Address",job.address],job.consumer_id&&["CUID",job.consumer_id],job.customer_phone&&["Phone",job.customer_phone],job.gas_company_name&&["Gas Company",job.gas_company_name],job.gas_agency_name&&["Gas Agency",job.gas_agency_name]].filter(Boolean).map(([l,v])=>`<div class="row"><span class="l">${l}:</span><span class="v">${v}</span></div>`).join("")}<div class="amt"><div style="font-size:11px;color:#666;margin-bottom:4px">Amount Paid</div><div class="n">₹${FIXED_AMT}</div><div style="font-size:10px;color:#666;margin-top:4px">${(pay.type||"cash").toUpperCase()}${pay.upi?` • ${pay.upi}`:""}</div></div><div class="chk"><h3>Inspection Results</h3><div class="item"><span>Total Questions</span><span>${cl.total||26}</span></div><div class="item"><span>हाँ (Yes)</span><span class="ok">✓ ${cl.yes_count||0}</span></div><div class="item"><span>नहीं (No)</span><span class="bad">✗ ${cl.no_count||0}</span></div></div><div class="ftr">${APP}<br>Thank you</div></body></html>`);w.document.close();setTimeout(()=>w.print(),300);};
+  const printR=()=>{
+    const w=window.open("","_blank","width=600,height=800");
+    if(!w)return;
+    const checklistHtml=checklistSections.map((sec,si)=>{
+      const rows=sec.items.map((q,qi)=>{
+        const val=cl[`s${si}_q${qi}`];
+        const ans=val===true?`<span class="yes">✓ हाँ</span>`:val===false?`<span class="no">✗ नहीं</span>`:`<span class="na">—</span>`;
+        return `<tr class="${qi%2===0?'even':'odd'}"><td class="qnum">${qi+1}.</td><td class="qtxt">${q}</td><td class="qans">${ans}</td></tr>`;
+      }).join("");
+      return `<div class="sec"><div class="sec-hdr">${sec.title}</div><table class="qtable">${rows}</table></div>`;
+    }).join("");
+    w.document.write(`<!DOCTYPE html><html><head><title>Inspection Report – ${rcpt}</title><style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:Arial,sans-serif;padding:20px;max-width:600px;margin:0 auto;font-size:12px;color:#111}
+      .hdr{text-align:center;border-bottom:3px solid #0f2557;padding-bottom:14px;margin-bottom:14px}
+      .hdr h1{font-size:17px;color:#0f2557;font-weight:900}
+      .hdr .sub{font-size:10px;color:#888;margin-top:3px}
+      .rcn{text-align:center;font-size:20px;font-weight:900;color:#0f2557;letter-spacing:3px;margin:10px 0 14px}
+      .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:14px;padding:10px;background:#f7f9fc;border-radius:6px;border:1px solid #dde3ee}
+      .info-row{display:flex;gap:4px;font-size:11px;padding:2px 0}.info-row .l{color:#666;min-width:90px}.info-row .v{font-weight:600}
+      .amt{background:#f0fdf4;border:2px solid #059669;border-radius:6px;padding:10px;margin:12px 0;text-align:center}
+      .amt .n{font-size:20px;font-weight:900;color:#059669}.amt .s{font-size:10px;color:#666;margin-top:2px}
+      .summary{display:flex;gap:8px;margin-bottom:14px}
+      .sum-box{flex:1;border-radius:6px;padding:8px;text-align:center;font-size:11px}
+      .sum-box .num{font-size:18px;font-weight:900;margin-bottom:2px}
+      .s-total{background:#eef2ff;border:1px solid #c7d2fe}.s-total .num{color:#3730a3}
+      .s-yes{background:#f0fdf4;border:1px solid #86efac}.s-yes .num{color:#15803d}
+      .s-no{background:#fef2f2;border:1px solid #fca5a5}.s-no .num{color:#dc2626}
+      .sec{margin-bottom:14px}
+      .sec-hdr{background:#0f2557;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;border-radius:4px 4px 0 0}
+      .qtable{width:100%;border-collapse:collapse}
+      .qtable tr.even{background:#f9fafb}.qtable tr.odd{background:#fff}
+      .qtable td{padding:5px 8px;vertical-align:top;border-bottom:1px solid #e5e7eb;font-size:11px}
+      .qnum{width:22px;color:#888;padding-top:6px}
+      .qtxt{line-height:1.5}
+      .qans{width:60px;text-align:center;font-weight:700;white-space:nowrap;padding-top:6px}
+      .yes{color:#15803d}.no{color:#dc2626}.na{color:#999}
+      .ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:2px dashed #ccc;font-size:9px;color:#999}
+      .ftr .sig{display:flex;justify-content:space-between;margin-bottom:24px;margin-top:8px}
+      .ftr .sig-box{border-top:1px solid #aaa;width:160px;text-align:center;padding-top:4px;font-size:10px;color:#555}
+      @media print{body{padding:10px}button{display:none}}
+    </style></head><body>
+      <div class="hdr"><h1>${APP}</h1><div class="sub">Gas Safety Inspection — Completed Form / निरीक्षण प्रमाण-पत्र</div></div>
+      <div class="rcn">${rcpt}</div>
+      <div class="info-grid">
+        ${[["Date / दिनांक",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Time / समय",new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})],["Customer / ग्राहक",job.customer_name||"N/A"],["Address / पता",job.address],job.consumer_id?["Consumer ID",job.consumer_id]:null,job.customer_phone?["Phone / फोन",job.customer_phone]:null,job.gas_company_name?["Gas Company",job.gas_company_name]:null,job.gas_agency_name?["Gas Agency",job.gas_agency_name]:null].filter(Boolean).map(([l,v])=>`<div class="info-row"><span class="l">${l}:</span><span class="v">${v}</span></div>`).join("")}
+      </div>
+      <div class="amt"><div class="s">Amount Paid / भुगतान</div><div class="n">₹${FIXED_AMT}</div><div class="s">${(pay.type||"cash").toUpperCase()}${pay.upi?` • Ref: ${pay.upi}`:""}</div></div>
+      <div class="summary">
+        <div class="sum-box s-total"><div class="num">${cl.total||26}</div>Total / कुल</div>
+        <div class="sum-box s-yes"><div class="num">${cl.yes_count||0}</div>✓ हाँ (Yes)</div>
+        <div class="sum-box s-no"><div class="num">${cl.no_count||0}</div>✗ नहीं (No)</div>
+      </div>
+      <div style="font-size:13px;font-weight:800;color:#0f2557;margin-bottom:8px;border-bottom:2px solid #0f2557;padding-bottom:4px">निरीक्षण चेकलिस्ट / Inspection Checklist</div>
+      ${checklistHtml}
+      <div class="ftr">
+        <div class="sig"><div class="sig-box">Inspector Signature<br>निरीक्षक हस्ताक्षर</div><div class="sig-box">Customer Signature<br>ग्राहक हस्ताक्षर</div></div>
+        ${APP} — Gas Safety Inspection Report | Receipt: ${rcpt} | ${new Date().toLocaleDateString("en-IN")}
+      </div>
+    </body></html>`);
+    w.document.close();
+    setTimeout(()=>w.print(),400);
+  };
 
   return(
     <div className="min-h-screen" style={{background:C.bg}}>
