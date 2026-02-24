@@ -293,7 +293,7 @@ function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${isPend?"border-l-4":"border-slate-200"}`} style={isPend?{borderLeftColor:C.red}:{}}>
       <div className="p-4">
         {j.consumer_id&&<div className="mb-3 px-3 py-2 rounded-lg flex items-center gap-2" style={{background:"#eef2ff",border:"2px solid #c7d2fe"}}><span className="text-xs font-bold text-indigo-500 uppercase tracking-wide">CUID</span><span className="text-xl font-extrabold text-indigo-800 font-mono tracking-widest">{j.consumer_id}</span></div>}
-        <div className="flex items-center justify-between mb-3"><SBadge s={j.status}/></div>
+        <div className="flex items-center justify-between mb-3"><SBadge s={j.status}/><a href={`https://maps.google.com/?q=${encodeURIComponent(j.address)}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white" style={{background:C.pri}}><II.Map s={14}/>नक्शा / Map</a></div>
         <div className="space-y-2">
           <div className="flex items-start gap-2"><II.Pin s={18} className="text-slate-400 flex-shrink-0 mt-0.5"/><p className="text-base font-semibold text-slate-900 leading-snug">{j.address}</p></div>
           {j.customer_name&&<div className="flex items-center gap-2"><II.User s={18} className="text-slate-400 flex-shrink-0"/><p className="text-base font-semibold text-slate-900">{j.customer_name}</p></div>}
