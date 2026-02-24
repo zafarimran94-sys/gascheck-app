@@ -205,7 +205,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
       const p=parseCsvLine(l); if(p.length<2)return;
       const[addr,custName,custPhone,cuid,gasCo,gasAg,empName,area]=p;
       const e=empName?emps.find(x=>x.name.toLowerCase()===empName.toLowerCase()||x.id===empName):null;
-      if(addr)arr.push({address:addr,customer_name:custName||null,customer_phone:custPhone||null,consumer_id:cuid||null,gas_company_name:gasCo||null,gas_agency_name:gasAg||null,assigned_to:e?e.id:null,area:area||null});
+      const clean=(v)=>(!v||v==="0"||v==="-")?null:v.trim();if(addr)arr.push({address:addr,customer_name:clean(custName),customer_phone:clean(custPhone),consumer_id:clean(cuid),gas_company_name:clean(gasCo),gas_agency_name:clean(gasAg),assigned_to:e?e.id:null,area:clean(area)||null});
     });
     return arr;
   };
@@ -326,42 +326,31 @@ function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
 /*─── Full Hindi Checklist ────────────────────────────────────*/
 const checklistSections = [
   { title: "(अ) सिंगल / डी.बी.सी.", items: [
-    "सिलेण्डर खड़ी (सीधी) अवस्था में रखा है।",
-    "सिलेण्डर खुले वातावरण (धूप, ताप, वर्षा, धूल से प्रभावित) में रखा है।",
-    "सिलेण्डर बन्द जगह / अलमारी / खाने में रखा है।",
-    "सिलेण्डर प्रेशर रेग्युलेटर एवं रबड़ट्यूब इस प्रकार लगाये गए है ताकि आवश्यकतानुसार आसानी से हटाया जा सके।",
-    "सिलेण्डर के निकट ज्वलनशील पदार्थ / वस्तु, मिट्टी का तेल, कपड़े के थैले, कागज आदि रखे है।",
-    "क्या प्रत्येक सिलेण्डर के साथ सुरक्षा कैप लगी है।",
+    { q: "सिलेण्डर खड़ी (सीधी) अवस्था में रखा है।", good: true },
+    { q: "सिलेण्डर खुले वातावरण (धूप, ताप, वर्षा, धूल से प्रभावित) में रखा है।", good: false },
+    { q: "सिलेण्डर के निकट ज्वलनशील पदार्थ / वस्तु, मिट्टी का तेल, कपड़े के थैले, कागज आदि रखे है।", good: false },
   ]},
   { title: "(ब) प्रेशर रेग्युलेटर", items: [
-    "क्या प्रेशर रेग्युलेटर की सही ढंग से सिलेण्डर / रबड ट्यूब के साथ लगा हुआ है।",
-    "क्या प्रेशर रेग्युलेटर सही अवस्था में है, रेग्युलेटर नॉब श्वास छिद्र (ब्रिदर हॉल) तथा बन्द करने की पद्धति सुचारू है।",
+    { q: "क्या प्रेशर रेग्युलेटर की सही ढंग से सिलेण्डर / रबड ट्यूब के साथ लगा हुआ है।", good: true },
+    { q: "क्या प्रेशर रेग्युलेटर सही अवस्था में है, रेग्युलेटर नॉब श्वास छिद्र (ब्रिदर हॉल) तथा बन्द करने की पद्धति सुचारू है।", good: true },
   ]},
   { title: "(स) रबड़ ट्यूब", items: [
-    "रबड ट्यूब आई.एस.आई. / बी.आई.एस. द्वारा अनुमोदित है।",
-    "रबड ट्यूब अच्छी हालत (क्रेक अथवा क्षतिग्रस्त नहीं) में है।",
-    "रबड ट्यूब की लम्बाई (1 से 1.5 मीटर) उपयुक्त है।",
-    "रबड ट्यूब पर धातु का आवरण / अन्य खोल चढ़ा हुआ है।",
+    { q: "रबड ट्यूब आई.एस.आई. / बी.आई.एस. द्वारा अनुमोदित है।", good: true },
+    { q: "रबड ट्यूब अच्छी हालत (क्रेक अथवा क्षतिग्रस्त नहीं) में है।", good: true },
   ]},
   { title: "(द) चुल्हा", items: [
-    "चुल्हा आई.एस. आई. द्वारा अनुमोदित है।",
-    "चूल्हा सिलेण्डर से अधिक ऊँचाई पर रखा हुआ है।",
-    "चूल्हे की सफाई तथा सर्विसिंग करें।",
-    "सफाई के उपरान्त / बाद चूल्हा फुल(पुरी) तथा सिमर अवस्था में संतोषजनक कार्य कर रहा है।",
+    { q: "चुल्हा आई.एस. आई. द्वारा अनुमोदित है।", good: true },
+    { q: "चूल्हा सिलेण्डर से अधिक ऊँचाई पर रखा हुआ है।", good: true },
   ]},
   { title: "(य) रसोई घर सम्बन्धी (सामान्य)", items: [
-    "रसोई घर में हवा के आगमन (आने-जाने) के पर्याप्त साधन है।",
-    "रसोई घर में एक से अधिक गैस कनेक्शन अथवा अन्य ईंधन जैसे मिट्टी का तेल का प्रयोग में लाया जा रहा है।",
-    "रसोई घर में पूजा का दीपक / लैम्प है।",
-    "रेफ्रिजरेटर भी रसोई में रखा है।",
+    { q: "रसोई घर में हवा के आगमन (आने-जाने) के पर्याप्त साधन है।", good: true },
+    { q: "रेफ्रिजरेटर भी रसोई में रखा है।", good: false },
   ]},
   { title: "(र) शैक्षणिक (उपभोक्ता से पूछें)", items: [
-    "क्या उसे सही ढंग से प्रेशर रेग्युलेटर का प्रयोग (लगाना/हटाना) आता है।",
-    "सप्लाई लेने के पूर्व सिलेण्डर की जाँच कराने के महत्व का पता है।",
-    "सिलेण्डर लगाने/हटाने के समय क्या-क्या सावधानियाँ रखनी चाहिए।",
-    "कार्य समाप्त होने/रात को सोने से पूर्व रेग्युलेटर को बन्द किया जाता है।",
-    "सुरक्षा कैप के महत्व का पता है।",
-    "आपातकालीन स्थिति में क्या करना चाहिए।",
+    { q: "क्या उसे सही ढंग से प्रेशर रेग्युलेटर का प्रयोग (लगाना/हटाना) आता है।", good: true },
+    { q: "सप्लाई लेने के पूर्व सिलेण्डर की जाँच कराने के महत्व का पता है।", good: true },
+    { q: "कार्य समाप्त होने/रात को सोने से पूर्व रेग्युलेटर को बन्द किया जाता है।", good: true },
+    { q: "सुरक्षा कैप के महत्व का पता है।", good: true },
   ]},
 ];
 
@@ -372,6 +361,9 @@ function FullChecklist({ onDone }) {
   const allDone = answered === totalQ;
 
   const toggle = (key, val) => setAnswers(p => ({ ...p, [key]: val }));
+
+  // isGood: true if the answer given matches the "good" answer for that question
+  const isGood = (val, good) => val === good;
 
   return (
     <div>
@@ -386,15 +378,33 @@ function FullChecklist({ onDone }) {
         <div key={si} className="mb-5">
           <div className="px-3 py-2 rounded-lg mb-2 text-sm font-bold text-white" style={{ background: C.pri }}>{sec.title}</div>
           <div className="space-y-2">
-            {sec.items.map((q, qi) => {
+            {sec.items.map((item, qi) => {
               const key = `${si}-${qi}`;
               const val = answers[key];
+              const good = item.good;
+              // border colour: green if good answer given, red if bad answer given
+              const borderCls = val != null
+                ? (isGood(val, good) ? "border-emerald-300" : "border-red-300")
+                : "border-slate-200";
+              // YES button: green if good===true and selected, red if good===false and selected
+              const yesActive = val === true;
+              const yesGood = good === true;
+              const noActive = val === false;
+              const noGood = good === false;
               return (
-                <div key={key} className={`bg-white rounded-xl border-2 p-4 transition ${val != null ? (val ? "border-emerald-300" : "border-red-300") : "border-slate-200"}`}>
-                  <p className="text-sm font-medium text-slate-800 mb-3 leading-relaxed">{qi + 1}. {q}</p>
+                <div key={key} className={`bg-white rounded-xl border-2 p-4 transition ${borderCls}`}>
+                  <p className="text-sm font-medium text-slate-800 mb-3 leading-relaxed">{qi + 1}. {item.q}</p>
                   <div className="flex gap-2">
-                    <button onClick={() => toggle(key, true)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${val === true ? "bg-emerald-600 text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}><II.Ok s={16} />हाँ</button>
-                    <button onClick={() => toggle(key, false)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${val === false ? "text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`} style={val === false ? { background: C.red } : {}}><II.No s={16} />नहीं</button>
+                    <button
+                      onClick={() => toggle(key, true)}
+                      className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${yesActive ? "text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                      style={yesActive ? { background: yesGood ? "#16a34a" : "#dc2626" } : {}}
+                    ><II.Ok s={16} />हाँ</button>
+                    <button
+                      onClick={() => toggle(key, false)}
+                      className={`flex-1 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center gap-1.5 transition ${noActive ? "text-white shadow" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                      style={noActive ? { background: noGood ? "#16a34a" : "#dc2626" } : {}}
+                    ><II.No s={16} />नहीं</button>
                   </div>
                 </div>
               );
@@ -406,7 +416,7 @@ function FullChecklist({ onDone }) {
         <button onClick={() => {
           const result = {};
           checklistSections.forEach((sec, si) => {
-            sec.items.forEach((q, qi) => {
+            sec.items.forEach((item, qi) => {
               result[`s${si}_q${qi}`] = answers[`${si}-${qi}`];
             });
           });
@@ -444,12 +454,14 @@ function Inspect({job,onDone,onBack,onUpd,show}){
     const w=window.open("","_blank","width=600,height=800");
     if(!w)return;
     const checklistHtml=checklistSections.map((sec,si)=>{
-      const rows=sec.items.map((q,qi)=>{
-        const val=cl[`s${si}_q${qi}`];
-        const ans=val===true?`<span class="yes">✓ हाँ</span>`:val===false?`<span class="no">✗ नहीं</span>`:`<span class="na">—</span>`;
-        return `<tr class="${qi%2===0?'even':'odd'}"><td class="qnum">${qi+1}.</td><td class="qtxt">${q}</td><td class="qans">${ans}</td></tr>`;
+      const rows=sec.items.map((item,qi)=>{
+        const val=cl["s"+si+"_q"+qi];
+        const good=item.good;
+        const isGoodAns=(val===good);
+        const ans=val===true?(isGoodAns?'<span class="good">✓ हाँ</span>':'<span class="bad">✓ हाँ</span>'):val===false?(isGoodAns?'<span class="good">✗ नहीं</span>':'<span class="bad">✗ नहीं</span>'):'<span class="na">—</span>';
+        return '<tr class="'+(qi%2===0?'even':'odd')+'"><td class="qnum">'+(qi+1)+'.</td><td class="qtxt">'+item.q+'</td><td class="qans">'+ans+'</td></tr>';
       }).join("");
-      return `<div class="sec"><div class="sec-hdr">${sec.title}</div><table class="qtable">${rows}</table></div>`;
+      return '<div class="sec"><div class="sec-hdr">'+sec.title+'</div><table class="qtable">'+rows+'</table></div>';
     }).join("");
     w.document.write(`<!DOCTYPE html><html><head><title>Inspection Report – ${rcpt}</title><style>
       *{margin:0;padding:0;box-sizing:border-box}
@@ -476,7 +488,7 @@ function Inspect({job,onDone,onBack,onUpd,show}){
       .qnum{width:22px;color:#888;padding-top:6px}
       .qtxt{line-height:1.5}
       .qans{width:60px;text-align:center;font-weight:700;white-space:nowrap;padding-top:6px}
-      .yes{color:#15803d}.no{color:#dc2626}.na{color:#999}
+      .good{color:#15803d;font-weight:700}.bad{color:#dc2626;font-weight:700}.na{color:#999}
       .ftr{text-align:center;margin-top:16px;padding-top:10px;border-top:2px dashed #ccc;font-size:9px;color:#999}
       .ftr .sig{display:flex;justify-content:space-between;margin-bottom:24px;margin-top:8px}
       .ftr .sig-box{border-top:1px solid #aaa;width:160px;text-align:center;padding-top:4px;font-size:10px;color:#555}
