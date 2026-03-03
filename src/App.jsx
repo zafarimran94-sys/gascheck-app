@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
 /*─── Config ─────────────────────────────────────────────────*/
-const SB_URL = "https://ybyvhoyiifjfvxcuaeku.supabase.co";
+const SB_URL = "https://late-sea-ab8c.zafarimran94.workers.dev";
 const SB_KEY = "sb_publishable_CeGC_3Qv1Qz14XpYMPgGyA_h3lB67mP";
 const APP = "LPG Inspection Care";
 const FIXED_AMT = 236;
