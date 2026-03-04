@@ -359,8 +359,19 @@ const checklistSections = [
 function FullChecklist({ onDone }) {
   const totalQ = checklistSections.reduce((s, sec) => s + sec.items.length, 0);
   const [answers, setAnswers] = useState({});
+  const [tubeExpiry, setTubeExpiry] = useState({ month: "", year: "" });
   const answered = Object.keys(answers).length;
-  const allDone = answered === totalQ;
+  const tubeExpiryFilled = tubeExpiry.month !== "" && tubeExpiry.year !== "";
+  const allDone = answered === totalQ && tubeExpiryFilled;
+
+  // Tube expiry status: green if expiry >= current month/year, red if past
+  const now = new Date();
+  const tubeExpiryStatus = (() => {
+    if (!tubeExpiryFilled) return null;
+    const exp = new Date(parseInt(tubeExpiry.year), parseInt(tubeExpiry.month) - 1);
+    const cur = new Date(now.getFullYear(), now.getMonth());
+    return exp >= cur ? "valid" : "expired";
+  })();
 
   const toggle = (key, val) => setAnswers(p => ({ ...p, [key]: val }));
 
@@ -411,6 +422,56 @@ function FullChecklist({ onDone }) {
                 </div>
               );
             })}
+            {/* Rubber tube expiry — shown only inside section (स) रबड़ ट्यूब = index 2 */}
+            {si === 2 && (() => {
+              const months = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+              const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+              const curYear = now.getFullYear();
+              const years = Array.from({ length: 10 }, (_, i) => curYear - 2 + i);
+              const borderCls = !tubeExpiryFilled ? "border-slate-200" : tubeExpiryStatus === "valid" ? "border-emerald-400" : "border-red-400";
+              const statusBg = !tubeExpiryFilled ? "" : tubeExpiryStatus === "valid" ? "bg-emerald-50" : "bg-red-50";
+              return (
+                <div className={`bg-white rounded-xl border-2 p-4 transition ${borderCls} ${statusBg}`}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">📅</div>
+                    <div>
+                      <p className="font-bold text-base">रबड़ ट्यूब की एक्सपायरी तारीख</p>
+                      <p className="text-sm text-slate-500">Rubber Tube Expiry Date</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">महीना / Month</label>
+                      <select
+                        className={`w-full px-3 py-3 border-2 rounded-lg text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${tubeExpiry.month ? (tubeExpiryStatus === "valid" ? "border-emerald-400 text-emerald-700" : "border-red-400 text-red-700") : "border-slate-200 text-slate-700"}`}
+                        value={tubeExpiry.month}
+                        onChange={e => setTubeExpiry(p => ({ ...p, month: e.target.value }))}
+                      >
+                        <option value="">-- Month --</option>
+                        {months.map((m, i) => <option key={m} value={m}>{monthNames[i]}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">साल / Year</label>
+                      <select
+                        className={`w-full px-3 py-3 border-2 rounded-lg text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${tubeExpiry.year ? (tubeExpiryStatus === "valid" ? "border-emerald-400 text-emerald-700" : "border-red-400 text-red-700") : "border-slate-200 text-slate-700"}`}
+                        value={tubeExpiry.year}
+                        onChange={e => setTubeExpiry(p => ({ ...p, year: e.target.value }))}
+                      >
+                        <option value="">-- Year --</option>
+                        {years.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  {tubeExpiryFilled && (
+                    <div className={`mt-3 px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm font-bold ${tubeExpiryStatus === "valid" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+                      {tubeExpiryStatus === "valid" ? <II.Ok s={16}/> : <II.Warn s={16}/>}
+                      {tubeExpiryStatus === "valid" ? "✅ ट्यूब वैध है / Tube is Valid" : "❌ ट्यूब एक्सपायर हो गई है / Tube Expired"}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       ))}
@@ -425,13 +486,16 @@ function FullChecklist({ onDone }) {
           result.yes_count = Object.values(answers).filter(v => v === true).length;
           result.no_count = Object.values(answers).filter(v => v === false).length;
           result.total = totalQ;
+          result.tube_expiry_month = tubeExpiry.month;
+          result.tube_expiry_year = tubeExpiry.year;
+          result.tube_expiry_status = tubeExpiryStatus;
           onDone(result);
         }} className="w-full py-5 rounded-xl font-extrabold text-lg text-white shadow-lg transition active:scale-[0.98]" style={{ background: C.pri }}>
           आगे बढ़ें / Continue →
         </button>
       ) : (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-sm text-amber-800">
-          <II.Warn s={16} />सभी प्रश्नों का उत्तर दें ({totalQ - answered} remaining)
+          <II.Warn s={16} />सभी प्रश्नों का उत्तर दें ({totalQ - answered + (tubeExpiryFilled ? 0 : 1)} remaining)
         </div>
       )}
     </div>
