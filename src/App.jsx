@@ -169,6 +169,7 @@ function CreateEmpAccountModal({open,close,employees,show}){
 function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,onRecon,onViewEmp,onLogout,prof,show}){
   const[showE,setShowE]=useState(false);const[showJ,setShowJ]=useState(false);const[showAcct,setShowAcct]=useState(false);const[editJob,setEditJob]=useState(null);const[delT,setDelT]=useState(null);const[delE,setDelE]=useState(null);
   const[tab,setTab]=useState("jobs");const[jTab,setJTab]=useState("single");const[nE,setNE]=useState({name:"",phone:"",area:""});const[bulk,setBulk]=useState("");
+  const[auditEmp,setAuditEmp]=useState("");const[auditSt,setAuditSt]=useState("");const[auditGps,setAuditGps]=useState("");const[auditPhoto,setAuditPhoto]=useState("");const[lightbox,setLightbox]=useState(null);const[auditPg,setAuditPg]=useState(0);
   const[pg,setPg]=useState(0);const[q,setQ]=useState("");const[fAg,setFAg]=useState("");const[fDC,setFDC]=useState("");const[fDA,setFDA]=useState("");const[fEmp,setFEmp]=useState("");const[fSt,setFSt]=useState("");const[showF,setShowF]=useState(false);
   const[sel,setSel]=useState(new Set());const[assignTo,setAssignTo]=useState("");const[assigning,setAssigning]=useState(false);const[bulkDel,setBulkDel]=useState(false);
   const csvRef=useRef(null);
@@ -226,7 +227,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
       <header className="sticky top-0 z-30 border-b border-slate-200" style={{background:"rgba(255,255,255,0.92)",backdropFilter:"blur(12px)"}}><div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center"><div className="flex items-center gap-3"><AppLogo s={36}/><div><h1 className="text-lg font-extrabold leading-tight" style={{color:C.pri}}>{APP}</h1><p className="text-[11px] text-slate-500">Welcome, {prof?.full_name||"Admin"}</p></div></div><div className="flex gap-2"><button onClick={onRecon} className="hidden sm:flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold hover:opacity-90" style={{background:C.pri}}><II.File s={16}/>Reconciliation</button><button onClick={onRecon} className="sm:hidden p-2 text-white rounded-lg" style={{background:C.pri}}><II.File s={18}/></button><button onClick={onLogout} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"><II.Out s={18} className="text-slate-500"/></button></div></div></header>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">{[{l:"Total",v:tot,bg:C.pri,click:()=>{setFSt("");setTab("jobs");}},{l:"Done",v:done,bg:"#059669",click:()=>{setFSt("completed");setTab("jobs");setPg(0);showF||setShowF(false);}},{l:"Cash",v:`₹${cash}`,bg:"#b45309",click:null},{l:"UPI",v:`₹${upi}`,bg:"#7c3aed",click:null}].map((s,i)=><div key={i} onClick={s.click||undefined} className={`rounded-xl p-4 text-white ${s.click?"cursor-pointer hover:opacity-90 active:scale-95 transition":""}`} style={{background:s.bg}}><div className="text-[10px] font-bold uppercase tracking-wider opacity-70">{s.l}</div><div className="text-2xl font-extrabold mt-1">{s.v}</div>{s.l==="Done"&&<div className="text-xs opacity-60">Pending: {pend}{fSt==="completed"?" · filtered ✓":""}</div>}</div>)}</div>
-        <Tabs tabs={[{k:"jobs",l:`Jobs (${filtered.length})`},{k:"employees",l:`Team (${emps.length})`}]} a={tab} set={setTab}/>
+        <Tabs tabs={[{k:"jobs",l:`Jobs (${filtered.length})`},{k:"employees",l:`Team (${emps.length})`},{k:"audit",l:"Audit"}]} a={tab} set={t=>{setTab(t);setAuditPg(0);}}/>
 
         {tab==="jobs"&&<div className="mt-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -261,6 +262,81 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
             <div className="grid grid-cols-3 gap-2 text-center mb-3">{[{v:ej.length,l:"Total",c:"bg-slate-50"},{v:dn,l:"Done",c:"bg-emerald-50"},{v:pd,l:"Pending",c:"bg-amber-50"}].map((d,i)=><div key={i} className={`${d.c} rounded-lg py-1.5`}><div className="text-base font-bold">{d.v}</div><div className="text-[9px] text-slate-500 uppercase">{d.l}</div></div>)}</div>
             <div className="flex gap-2">{e.profile_id?<span className="text-[10px] px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold">Has Login</span>:<span className="text-[10px] px-2 py-1 bg-slate-100 text-slate-500 rounded font-semibold">No Login</span>}<div className="flex-1"/><button onClick={()=>onViewEmp(e.id)} className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"><II.Eye s={14}/>View</button></div>
           </div>})}</div></div>}
+
+        {tab==="audit"&&(()=>{
+          // compute audit-filtered list
+          const auditJobs=jobs.filter(j=>{
+            if(auditEmp&&j.assigned_to!==auditEmp)return false;
+            if(auditSt&&j.status!==auditSt)return false;
+            if(auditGps==="yes"&&(!j.gps_lat||!j.gps_lng))return false;
+            if(auditGps==="no"&&j.gps_lat)return false;
+            if(auditPhoto==="yes"&&!j.validation_photo_url)return false;
+            if(auditPhoto==="no"&&j.validation_photo_url)return false;
+            return true;
+          });
+          const gpsOk=auditJobs.filter(j=>j.gps_lat&&j.gps_lng).length;
+          const photoOk=auditJobs.filter(j=>j.validation_photo_url).length;
+          const auditPaged=auditJobs.slice(auditPg*PAGE_SZ,(auditPg+1)*PAGE_SZ);
+          return(
+            <div className="mt-4">
+              {/* Summary badges */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                {[
+                  {l:"Total in view",v:auditJobs.length,bg:"bg-slate-700"},
+                  {l:"GPS captured",v:`${gpsOk} / ${auditJobs.length}`,bg:gpsOk===auditJobs.length?"bg-emerald-600":"bg-amber-500"},
+                  {l:"Photos uploaded",v:`${photoOk} / ${auditJobs.filter(j=>j.status!=="completed"&&j.status!=="pending"&&j.status!=="in-progress").length}`,bg:photoOk===auditJobs.filter(j=>j.validation_photo_url!==undefined&&j.status!=="pending"&&j.status!=="in-progress").length?"bg-emerald-600":"bg-amber-500"},
+                ].map((s,i)=><div key={i} className={`${s.bg} text-white rounded-xl p-3 text-center`}><div className="text-lg font-extrabold">{s.v}</div><div className="text-[10px] uppercase opacity-60 mt-0.5">{s.l}</div></div>)}
+              </div>
+              {/* Filters */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div><label className="block text-xs font-semibold text-slate-500 mb-1">Employee</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditEmp} onChange={e=>{setAuditEmp(e.target.value);setAuditPg(0);}}><option value="">All</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></div>
+                <div><label className="block text-xs font-semibold text-slate-500 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditSt} onChange={e=>{setAuditSt(e.target.value);setAuditPg(0);}}><option value="">All</option><option value="completed">Completed</option><option value="in-progress">In Progress</option><option value="customer-not-reachable">Not Reachable</option><option value="customer-refused">Refused</option><option value="pending">Pending</option></select></div>
+                <div><label className="block text-xs font-semibold text-slate-500 mb-1">GPS</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditGps} onChange={e=>{setAuditGps(e.target.value);setAuditPg(0);}}><option value="">Any</option><option value="yes">✅ Captured</option><option value="no">❌ Missing</option></select></div>
+                <div><label className="block text-xs font-semibold text-slate-500 mb-1">Proof Photo</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditPhoto} onChange={e=>{setAuditPhoto(e.target.value);setAuditPg(0);}}><option value="">Any</option><option value="yes">✅ Uploaded</option><option value="no">❌ Missing</option></select></div>
+              </div>
+              {/* Lightbox */}
+              {lightbox&&<div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4" onClick={()=>setLightbox(null)}><div className="relative max-w-lg w-full" onClick={e=>e.stopPropagation()}><img src={lightbox} alt="Proof" className="w-full rounded-xl shadow-2xl max-h-[80vh] object-contain bg-black"/><button onClick={()=>setLightbox(null)} className="absolute top-3 right-3 bg-white/20 text-white rounded-full p-2 hover:bg-white/40"><II.No s={18}/></button><a href={lightbox} target="_blank" rel="noreferrer" className="absolute bottom-3 right-3 bg-white text-slate-800 text-xs font-bold px-3 py-1.5 rounded-lg">Open full ↗</a></div></div>}
+              {/* Table */}
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="bg-slate-50 border-b text-left">{["CUID","Customer","Employee","Status","GPS","Arrival Time","Proof Photo"].map(h=><th key={h} className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wide whitespace-nowrap">{h}</th>)}</tr></thead>
+                    <tbody>
+                      {auditPaged.map(j=>{
+                        const empName=emps.find(e=>e.id===j.assigned_to)?.name||"—";
+                        const hasGps=!!(j.gps_lat&&j.gps_lng);
+                        const hasPhoto=!!j.validation_photo_url;
+                        const arrivalFmt=j.arrival_time?new Date(j.arrival_time).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+                        return(
+                          <tr key={j.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                            <td className="px-4 py-3"><span className="font-mono font-bold text-indigo-700 text-xs bg-indigo-50 px-2 py-1 rounded">{j.consumer_id||"—"}</span></td>
+                            <td className="px-4 py-3"><div className="font-semibold text-xs text-slate-800 max-w-[160px] truncate">{j.customer_name||"—"}</div><div className="text-[10px] text-slate-400 max-w-[160px] truncate">{j.address}</div></td>
+                            <td className="px-4 py-3 text-xs font-medium text-slate-700 whitespace-nowrap">{empName}</td>
+                            <td className="px-4 py-3"><SBadge s={j.status}/></td>
+                            <td className="px-4 py-3">
+                              {hasGps
+                                ?<a href={`https://www.google.com/maps?q=${j.gps_lat},${j.gps_lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:underline whitespace-nowrap"><II.Ok s={14}/>View Map</a>
+                                :<span className="flex items-center gap-1 text-xs font-bold text-red-500"><II.No s={14}/>Missing</span>}
+                              {hasGps&&<div className="text-[9px] text-slate-400 font-mono mt-0.5">{(+j.gps_lat).toFixed(4)}, {(+j.gps_lng).toFixed(4)}</div>}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">{arrivalFmt}</td>
+                            <td className="px-4 py-3">
+                              {hasPhoto
+                                ?<button onClick={()=>setLightbox(j.validation_photo_url)} className="block w-14 h-14 rounded-lg overflow-hidden border-2 border-emerald-300 hover:border-emerald-500 transition flex-shrink-0"><img src={j.validation_photo_url} alt="proof" className="w-full h-full object-cover"/></button>
+                                :<span className="flex items-center gap-1 text-xs font-bold text-slate-400"><II.No s={14}/>None</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {auditPaged.length===0&&<tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400 text-sm">No jobs match the current filters</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <Pager page={auditPg} setPage={setAuditPg} total={auditJobs.length}/>
+            </div>
+          );
+        })()}
       </div>
       <Modal open={showE} close={()=>setShowE(false)} title="Add Employee"><div className="space-y-4"><Inp label="Name" required value={nE.name} onChange={e=>setNE({...nE,name:e.target.value})} placeholder="Ramesh Kumar"/><Inp label="Phone" required value={nE.phone} onChange={e=>setNE({...nE,phone:e.target.value})} placeholder="9876543210"/><Inp label="Area" value={nE.area} onChange={e=>setNE({...nE,area:e.target.value})} placeholder="Rohini"/><button onClick={doAddE} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Add Employee</button></div></Modal>
       <Modal open={showJ} close={()=>setShowJ(false)} title="Create Job" wide><Tabs tabs={[{k:"single",l:"Single"},{k:"bulk",l:"Bulk Upload"}]} a={jTab} set={setJTab}/>{jTab==="single"?<div className="mt-4"><JobForm emps={emps} onSave={async f=>{await onAddJob(f);setShowJ(false);}}/></div>:<div className="mt-4 space-y-4">
