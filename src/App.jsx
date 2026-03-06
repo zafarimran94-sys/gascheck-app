@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import LandingPage from "./LandingPage";
+import { APP, AppLogo } from "./AppShared";
 
 /*─── Config ─────────────────────────────────────────────────*/
 const SB_URL = "https://ybyvhoyiifjfvxcuaeku.supabase.co";
 const SB_KEY = "sb_publishable_CeGC_3Qv1Qz14XpYMPgGyA_h3lB67mP";
-const APP = "LPG Inspection Care";
 const FIXED_AMT = 236;
 const HOSE_AMT = 190;
 const PAGE_SZ = 20;
@@ -91,10 +92,6 @@ const II = {
 };
 
 // Logo component using uploaded image
-const LOGO_URL = "https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/SVG%20(1).png";
-const AppLogo = ({ s = 32, className = "" }) => (
-  <img src={LOGO_URL} alt={APP} width={s} height={s} className={`object-contain ${className}`}/>
-);
 
 /*─── Theme ──────────────────────────────────────────────────*/
 const C = { pri: "#0f2557", priL: "#1e3a5f", red: "#dc2626", bg: "#f0f4f8" };
@@ -988,121 +985,6 @@ function Recon({emps,jobs,onBack}){
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/*─── Public Landing Page ─────────────────────────────────────*/
-function LandingPage({ onLogin }) {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Nav */}
-      <nav className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-3"><AppLogo s={36}/><span className="text-lg font-extrabold" style={{color:C.pri}}>{APP}</span></div>
-          <div className="flex items-center gap-3">
-            <a href="#services" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">Services</a>
-            <a href="#about" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">About</a>
-            <a href="#contact" className="hidden sm:inline text-sm font-medium text-slate-600 hover:text-slate-900">Contact</a>
-            <button onClick={onLogin} className="px-5 py-2.5 text-white rounded-lg text-sm font-bold hover:opacity-90 transition" style={{background:C.pri}}>Login / Portal</button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative overflow-hidden" style={{background:`linear-gradient(135deg,${C.pri} 0%,#1a3a7a 100%)`}}>
-        <div className="absolute inset-0 opacity-10"><div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-white blur-3xl"/><div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-blue-300 blur-3xl"/></div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 relative">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs text-blue-200 font-semibold mb-6 border border-white/20">Trusted Gas Safety Partner</div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white leading-tight mb-6">Professional LPG<br/>Safety Inspections<br/><span style={{color:"#f87171"}}>For Every Home</span></h1>
-            <p className="text-lg text-blue-200/80 mb-8 leading-relaxed max-w-lg">Ensuring the safety of your family with certified gas pipeline inspections, equipment checks, and compliance certification — all at your doorstep.</p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a href="#contact" className="px-8 py-4 bg-white rounded-xl font-bold text-sm hover:bg-slate-50 transition text-center" style={{color:C.pri}}>Book an Inspection</a>
-              <a href="#services" className="px-8 py-4 border-2 border-white/30 text-white rounded-xl font-bold text-sm hover:bg-white/10 transition text-center">Our Services</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-b border-slate-100" style={{background:C.bg}}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            {[{n:"10,000+",l:"Inspections Done"},{n:"50+",l:"Trained Engineers"},{n:"15+",l:"Cities Covered"},{n:"99.9%",l:"Safety Record"}].map((s,i)=><div key={i}><div className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>{s.n}</div><div className="text-sm text-slate-500 mt-1">{s.l}</div></div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section id="services" className="py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12"><h2 className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>Our Services</h2><p className="text-slate-500 mt-2 max-w-lg mx-auto">Comprehensive LPG safety solutions for residential and commercial properties</p></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {icon:"🔍",title:"Safety Inspection",desc:"Complete 26-point safety checklist covering cylinder, regulator, rubber tube, stove, and kitchen ventilation as per government norms."},
-              {icon:"📋",title:"Compliance Certification",desc:"Official inspection certificates with detailed reports for gas agencies, housing societies, and insurance requirements."},
-              {icon:"🔧",title:"Equipment Check",desc:"Thorough examination of pressure regulators, rubber tubes, stove burners, and gas connections for wear and damage."},
-              {icon:"📱",title:"Digital Tracking",desc:"Real-time job tracking with GPS verification, digital receipts, and WhatsApp notifications for complete transparency."},
-              {icon:"👥",title:"Bulk Inspections",desc:"Efficient handling of large-scale inspection drives for gas agencies and housing societies with dedicated team deployment."},
-              {icon:"🏠",title:"Home Visit",desc:"Convenient doorstep service — our trained engineers visit your home at your preferred time with all necessary equipment."},
-            ].map((s,i)=><div key={i} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition group">
-              <div className="text-3xl mb-4">{s.icon}</div>
-              <h3 className="font-bold text-lg mb-2" style={{color:C.pri}}>{s.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
-            </div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* About */}
-      <section id="about" className="py-16 sm:py-20" style={{background:C.bg}}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold mb-6" style={{color:C.pri}}>Why Choose {APP}?</h2>
-              <div className="space-y-4">
-                {[
-                  {t:"Government Approved",d:"All inspections follow the official 26-point safety checklist as mandated by oil marketing companies and BIS standards."},
-                  {t:"Trained & Certified Team",d:"Our engineers undergo rigorous training and are certified for LPG safety inspection and compliance reporting."},
-                  {t:"Digital-First Approach",d:"Complete digital workflow — from job assignment to GPS-verified inspections to instant digital receipts."},
-                  {t:"Transparent Pricing",d:`Fixed inspection fee of ₹${FIXED_AMT} per household with no hidden charges. Payments via cash or UPI.`},
-                ].map((p,i)=><div key={i} className="flex gap-4"><div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{background:C.pri}}><II.Ok s={16} className="text-white"/></div><div><h4 className="font-bold text-sm">{p.t}</h4><p className="text-sm text-slate-500 mt-0.5">{p.d}</p></div></div>)}
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
-              <AppLogo s={80} className="mx-auto mb-6"/>
-              <h3 className="text-xl font-extrabold mb-2" style={{color:C.pri}}>{APP}</h3>
-              <p className="text-slate-500 text-sm mb-6">Your trusted partner for LPG safety compliance</p>
-              <div className="grid grid-cols-2 gap-3 text-center">
-                {[{v:"24/7",l:"Support"},{v:"ISO",l:"Certified"},{v:"100%",l:"Compliance"},{v:"Fast",l:"Turnaround"}].map((s,i)=><div key={i} className="bg-slate-50 rounded-lg py-3"><div className="font-extrabold" style={{color:C.pri}}>{s.v}</div><div className="text-[10px] text-slate-500 uppercase">{s.l}</div></div>)}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Process */}
-      <section className="py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12"><h2 className="text-2xl sm:text-3xl font-extrabold" style={{color:C.pri}}>How It Works</h2></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[{n:"1",t:"Book",d:"Schedule an inspection via phone or through your gas agency"},{n:"2",t:"Visit",d:"Our engineer arrives at your doorstep with GPS-verified check-in"},{n:"3",t:"Inspect",d:"Complete 26-point safety checklist covering all equipment"},{n:"4",t:"Certify",d:"Receive digital receipt and inspection certificate instantly"}].map((s,i)=><div key={i} className="text-center"><div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-extrabold text-lg" style={{background:i===3?C.red:C.pri}}>{s.n}</div><h3 className="font-bold mb-2">{s.t}</h3><p className="text-sm text-slate-500">{s.d}</p></div>)}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section id="contact" className="py-16 sm:py-20" style={{background:C.pri}}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-4">Get In Touch</h2>
-          <p className="text-blue-200/70 mb-8 max-w-lg mx-auto">For inspection bookings, bulk enquiries, or partnership opportunities</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-10">
-            {[{icon:"📞",label:"Phone",value:"+91-XXXXX-XXXXX"},{icon:"📧",label:"Email",value:"info@lpginspectioncare.com"},{icon:"📍",label:"Office",value:"Your City, India"}].map((c,i)=><div key={i} className="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/10"><div className="text-2xl mb-2">{c.icon}</div><div className="text-xs text-blue-200/60 uppercase">{c.label}</div><div className="text-white font-semibold text-sm mt-1">{c.value}</div></div>)}
-          </div>
-          <p className="text-blue-200/40 text-xs">© {new Date().getFullYear()} {APP}. All rights reserved.</p>
-        </div>
-      </section>
     </div>
   );
 }
