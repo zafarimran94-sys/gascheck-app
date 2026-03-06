@@ -637,7 +637,7 @@ function Inspect({job,onDone,onBack,onUpd,show}){
               <div className="bg-emerald-50 border-2 border-emerald-500 rounded-lg p-4 text-center mb-4"><p className="text-xs text-emerald-600 uppercase font-bold mb-1">Paid</p><p className="text-3xl font-extrabold text-emerald-700">₹{FIXED_AMT}</p><p className="text-xs text-emerald-600 mt-1">{(pay.type||"cash").toUpperCase()}</p></div>
             )}
             
-            <div className="grid grid-cols-3 gap-2"><button onClick={shareR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1"><II.Share s={16} className="text-slate-500"/>WhatsApp</button><button onClick={printR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{color:C.pri}}><II.Pdf s={16}/>Print PDF</button><button onClick={doFinal} disabled={saving} className="py-3 text-white rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{background:"#059669"}}>{saving?<II.Spin s={16} className="animate-spin"/>:<II.Ok s={16}/>}Done</button></div>
+            <div className="grid grid-cols-2 gap-2"><button onClick={printR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{color:C.pri}}><II.Share s={16}/>Share Receipt</button><button onClick={doFinal} disabled={saving} className="py-3 text-white rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{background:"#059669"}}>{saving?<II.Spin s={16} className="animate-spin"/>:<II.Ok s={16}/>}Done</button></div>
           </div></div>}
       </div>
     </div>
@@ -646,18 +646,271 @@ function Inspect({job,onDone,onBack,onUpd,show}){
 
 /*─── Reconciliation ─────────────────────────────────────────*/
 function Recon({emps,jobs,onBack}){
-  const c=jobs.filter(j=>j.status==="completed"),p=jobs.filter(j=>j.status==="pending"||j.status==="in-progress"),nr=jobs.filter(j=>j.status==="customer-not-reachable"),rf=jobs.filter(j=>j.status==="customer-refused");
-  const ct=c.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0),ut=c.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0),ap=c.filter(j=>j.payment_type==="already-paid").reduce((s,j)=>s+(+j.payment_amount||0),0);
-  const es=emps.map(e=>{const ej=jobs.filter(j=>j.assigned_to===e.id),ec=ej.filter(j=>j.status==="completed");return{e,tot:ej.length,done:ec.length,pend:ej.filter(j=>j.status==="pending"||j.status==="in-progress").length,nr:ej.filter(j=>j.status==="customer-not-reachable").length,rf:ej.filter(j=>j.status==="customer-refused").length,cash:ec.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0),upi:ec.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0),ap:ec.filter(j=>j.payment_type==="already-paid").reduce((s,j)=>s+(+j.payment_amount||0),0),jobs:ec};});
-  return(<div className="min-h-screen" style={{background:`linear-gradient(135deg,${C.pri},#1a3a7a)`}}>
-    <div className="px-4 sm:px-6 pt-4 pb-6 max-w-5xl mx-auto"><div className="flex justify-between items-start"><div><button onClick={onBack} className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-2"><II.Back s={18}/>Back</button><h1 className="text-2xl font-extrabold text-white">Reconciliation</h1><p className="text-blue-200/60 text-sm mt-1">{new Date().toLocaleDateString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p></div><button onClick={()=>window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white/15 text-white rounded-lg text-sm font-semibold hover:bg-white/25"><II.Print s={16}/>Print</button></div></div>
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-10">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">{[{l:"Total",v:jobs.length},{l:"Done",v:c.length},{l:"Pending",v:p.length},{l:"Not Reachable",v:nr.length},{l:"Refused",v:rf.length},{l:"Rate",v:`${jobs.length?Math.round(c.length/jobs.length*100):0}%`}].map((s,i)=><div key={i} className="bg-white/10 backdrop-blur rounded-xl p-4 text-white text-center"><div className="text-3xl font-extrabold">{s.v}</div><div className="text-xs uppercase opacity-50 mt-1">{s.l}</div></div>)}</div>
-      <div className="bg-white rounded-xl shadow-lg p-5 mb-6"><h2 className="text-lg font-bold mb-4">Payments</h2><div className="space-y-2">{[{l:"Cash",v:ct,c:"bg-amber-50 text-amber-700",i:"💵"},{l:"UPI",v:ut,c:"bg-violet-50 text-violet-700",i:"📱"},{l:"Already Paid",v:ap,c:"bg-blue-50 text-blue-700",i:"✅"}].map(p=><div key={p.l} className={`flex items-center justify-between p-3.5 rounded-lg ${p.c}`}><span className="flex items-center gap-2 font-medium"><span>{p.i}</span>{p.l}</span><span className="text-xl font-extrabold">₹{p.v}</span></div>)}<div className="flex items-center justify-between p-4 bg-emerald-100 rounded-lg border-2 border-emerald-500"><span className="font-extrabold text-emerald-900">TOTAL</span><span className="text-2xl font-extrabold text-emerald-700">₹{ct+ut+ap}</span></div></div></div>
-      <div className="bg-white rounded-xl shadow-lg p-5 mb-6"><h2 className="text-lg font-bold mb-4">Not Reachable & Refused</h2><div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{[{l:"Not Reachable",jobs:nr,color:"bg-red-50",border:"border-red-200",text:"text-red-700",icon:"🚫"},{l:"Refused",jobs:rf,color:"bg-rose-50",border:"border-rose-200",text:"text-rose-700",icon:"🙅"}].map(g=><div key={g.l} className={`${g.color} border ${g.border} rounded-xl p-4`}><div className="flex items-center gap-2 mb-3"><span className="text-xl">{g.icon}</span><h3 className={`font-bold ${g.text}`}>{g.l} ({g.jobs.length})</h3></div>{g.jobs.length===0?<p className="text-sm text-slate-400 italic">None</p>:<div className="space-y-2">{g.jobs.map(j=><div key={j.id} className="bg-white rounded-lg p-2.5 text-xs"><div className="font-semibold text-slate-700">{j.customer_name||"N/A"}</div><div className="text-slate-500 mt-0.5">{j.address}</div>{j.status_reason&&<div className={`mt-1 ${g.text} font-medium`}>Reason: {j.status_reason}</div>}</div>)}</div>}</div>)}</div></div>
-<div className="bg-white rounded-xl shadow-lg p-5"><h2 className="text-lg font-bold mb-4">By Employee</h2><div className="space-y-4">{es.map(s=><div key={s.e.id} className="border rounded-xl p-4"><div className="flex justify-between items-center mb-3"><div><h3 className="font-bold">{s.e.name}</h3><p className="text-xs text-slate-500">{s.e.area}</p></div><div className="text-right"><div className="text-xl font-extrabold text-emerald-600">₹{s.cash+s.upi+s.ap}</div></div></div><div className="grid grid-cols-7 gap-2 text-center">{[{v:s.tot,l:"Total"},{v:s.done,l:"Done"},{v:s.pend,l:"Pend"},{v:s.nr,l:"N/Reach",c:"text-red-600"},{v:s.rf,l:"Refused",c:"text-rose-600"},{v:`₹${s.cash}`,l:"Cash"},{v:`₹${s.upi}`,l:"UPI"}].map((d,i)=><div key={i} className={`bg-slate-50 rounded-lg py-1.5 ${d.c||""}`}><div className="text-sm font-bold">{d.v}</div><div className="text-[9px] text-slate-500 uppercase">{d.l}</div></div>)}</div></div>)}</div></div>
+  const today=new Date().toISOString().slice(0,10);
+  const[dateFrom,setDateFrom]=useState(today);
+  const[dateTo,setDateTo]=useState(today);
+  const[fEmp,setFEmp]=useState("");
+  const[fPay,setFPay]=useState("");
+
+  // filter jobs by date range + employee + payment type
+  const inRange=useMemo(()=>{
+    const from=new Date(dateFrom+"T00:00:00");
+    const to=new Date(dateTo+"T23:59:59");
+    return jobs.filter(j=>{
+      const d=new Date(j.created_at||j.completed_time||0);
+      if(d<from||d>to)return false;
+      if(fEmp&&j.assigned_to!==fEmp)return false;
+      if(fPay&&j.payment_type!==fPay)return false;
+      return true;
+    });
+  },[jobs,dateFrom,dateTo,fEmp,fPay]);
+
+  const c=inRange.filter(j=>j.status==="completed");
+  const p=inRange.filter(j=>j.status==="pending"||j.status==="in-progress");
+  const nr=inRange.filter(j=>j.status==="customer-not-reachable");
+  const rf=inRange.filter(j=>j.status==="customer-refused");
+
+  const ct=c.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0);
+  const ut=c.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
+  const ap=c.filter(j=>j.payment_type==="already-paid").reduce((s,j)=>s+(+j.payment_amount||0),0);
+  const total=ct+ut+ap;
+  const hoseJobs=c.filter(j=>j.hose_installed);
+  const hoseRev=hoseJobs.length*HOSE_AMT;
+  const avgPerJob=c.length?Math.round(total/c.length):0;
+  const compRate=inRange.length?Math.round(c.length/inRange.length*100):0;
+
+  // trendline: group completed jobs by date within range
+  const isMultiDay=dateFrom!==dateTo;
+  const trendData=useMemo(()=>{
+    if(!isMultiDay)return[];
+    const map={};
+    c.forEach(j=>{
+      const d=(j.completed_time||j.created_at||"").slice(0,10);
+      if(!d)return;
+      if(!map[d])map[d]={date:d,count:0,revenue:0};
+      map[d].count++;
+      map[d].revenue+=(+j.payment_amount||0);
+    });
+    const sorted=Object.values(map).sort((a,b)=>a.date.localeCompare(b.date));
+    return sorted;
+  },[c,isMultiDay]);
+
+  const maxTrendRev=trendData.length?Math.max(...trendData.map(d=>d.revenue),1):1;
+  const maxTrendCount=trendData.length?Math.max(...trendData.map(d=>d.count),1):1;
+
+  // per-employee stats
+  const es=emps.map(e=>{
+    const ej=inRange.filter(j=>j.assigned_to===e.id);
+    const ec=ej.filter(j=>j.status==="completed");
+    const hoses=ec.filter(j=>j.hose_installed).length;
+    const cash=ec.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0);
+    const upi=ec.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
+    const already=ec.filter(j=>j.payment_type==="already-paid").reduce((s,j)=>s+(+j.payment_amount||0),0);
+    const rate=ej.length?Math.round(ec.length/ej.length*100):0;
+    return{e,tot:ej.length,done:ec.length,pend:ej.filter(j=>j.status==="pending"||j.status==="in-progress").length,nr:ej.filter(j=>j.status==="customer-not-reachable").length,rf:ej.filter(j=>j.status==="customer-refused").length,cash,upi,already,hoses,rate,rev:cash+upi+already};
+  }).filter(s=>s.tot>0).sort((a,b)=>b.rev-a.rev);
+
+  const fmtDate=d=>new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short"});
+
+  return(
+    <div className="min-h-screen" style={{background:C.bg}}>
+      {/* Header */}
+      <div style={{background:`linear-gradient(135deg,${C.pri},#1a3a7a)`}}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <button onClick={onBack} className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm mb-2"><II.Back s={18}/>Back</button>
+              <h1 className="text-2xl font-extrabold text-white">Reconciliation Dashboard</h1>
+              <p className="text-blue-200/60 text-sm mt-0.5">{new Date().toLocaleDateString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
+            </div>
+            <button onClick={()=>window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white/15 text-white rounded-lg text-sm font-semibold hover:bg-white/25"><II.Print s={16}/>Print</button>
+          </div>
+          {/* Filters */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div><label className="block text-[10px] font-bold text-blue-200/70 uppercase mb-1">From</label><input type="date" className="w-full px-3 py-2.5 rounded-lg text-sm bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40" value={dateFrom} onChange={e=>{setDateFrom(e.target.value);if(e.target.value>dateTo)setDateTo(e.target.value);}}/></div>
+            <div><label className="block text-[10px] font-bold text-blue-200/70 uppercase mb-1">To</label><input type="date" className="w-full px-3 py-2.5 rounded-lg text-sm bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/40" value={dateTo} onChange={e=>setDateTo(e.target.value)} min={dateFrom}/></div>
+            <div><label className="block text-[10px] font-bold text-blue-200/70 uppercase mb-1">Employee</label><select className="w-full px-3 py-2.5 rounded-lg text-sm bg-white/10 text-white border border-white/20 focus:outline-none" value={fEmp} onChange={e=>setFEmp(e.target.value)}><option value="" className="text-slate-800">All Employees</option>{emps.map(e=><option key={e.id} value={e.id} className="text-slate-800">{e.name}</option>)}</select></div>
+            <div><label className="block text-[10px] font-bold text-blue-200/70 uppercase mb-1">Payment</label><select className="w-full px-3 py-2.5 rounded-lg text-sm bg-white/10 text-white border border-white/20 focus:outline-none" value={fPay} onChange={e=>setFPay(e.target.value)}><option value="" className="text-slate-800">All Types</option><option value="cash" className="text-slate-800">Cash</option><option value="upi" className="text-slate-800">UPI</option><option value="already-paid" className="text-slate-800">Already Paid</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            {l:"Total Jobs",v:inRange.length,sub:"in range",bg:"bg-slate-800"},
+            {l:"Completed",v:c.length,sub:`${compRate}% rate`,bg:"bg-emerald-600"},
+            {l:"Pending",v:p.length,sub:"active",bg:"bg-amber-500"},
+            {l:"Follow-ups",v:nr.length+rf.length,sub:`${nr.length} NR · ${rf.length} refused`,bg:"bg-red-600"},
+            {l:"Hose Installs",v:hoseJobs.length,sub:`₹${hoseRev} extra`,bg:"bg-violet-600"},
+            {l:"Avg / Job",v:`₹${avgPerJob}`,sub:"completed",bg:C.pri},
+          ].map((s,i)=>(
+            <div key={i} className={`${s.bg} rounded-xl p-4 text-white`}>
+              <div className="text-[10px] font-bold uppercase opacity-60 mb-1">{s.l}</div>
+              <div className="text-2xl font-extrabold">{s.v}</div>
+              <div className="text-[10px] opacity-50 mt-0.5">{s.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Collection Split + Total */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold">Collection Breakdown</h2>
+            <div className="text-2xl font-extrabold text-emerald-600">₹{total}</div>
+          </div>
+          <div className="space-y-3">
+            {[
+              {l:"Cash",v:ct,icon:"💵",color:"bg-amber-400",light:"bg-amber-50",text:"text-amber-800"},
+              {l:"UPI",v:ut,icon:"📱",color:"bg-violet-500",light:"bg-violet-50",text:"text-violet-800"},
+              {l:"Already Paid",v:ap,icon:"✅",color:"bg-blue-400",light:"bg-blue-50",text:"text-blue-800"},
+            ].map(row=>{
+              const pct=total?Math.round(row.v/total*100):0;
+              return(
+                <div key={row.l} className={`${row.light} rounded-xl p-3`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`flex items-center gap-2 font-semibold text-sm ${row.text}`}><span>{row.icon}</span>{row.l}</span>
+                    <span className={`font-extrabold ${row.text}`}>₹{row.v} <span className="font-normal text-xs opacity-60">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 bg-white/60 rounded-full overflow-hidden">
+                    <div className={`h-full ${row.color} rounded-full transition-all duration-500`} style={{width:`${pct}%`}}/>
+                  </div>
+                </div>
+              );
+            })}
+            {hoseRev>0&&(
+              <div className="bg-violet-50 rounded-xl p-3 border border-violet-200">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 font-semibold text-sm text-violet-800">🔧 Suraksha Hose Add-on</span>
+                  <span className="font-extrabold text-violet-700">₹{hoseRev} <span className="font-normal text-xs opacity-60">({hoseJobs.length} installs)</span></span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Trendline — only shown for multi-day range */}
+        {isMultiDay&&trendData.length>0&&(
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <h2 className="text-base font-bold mb-1">Daily Trend</h2>
+            <p className="text-xs text-slate-400 mb-4">{dateFrom===dateTo?"Single day":fmtDate(dateFrom)+" → "+fmtDate(dateTo)} · {trendData.length} active days</p>
+            {/* Revenue bars */}
+            <div className="mb-4">
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Revenue per day</p>
+              <div className="flex items-end gap-1 h-24">
+                {trendData.map((d,i)=>(
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none">₹{d.revenue}</div>
+                    <div className="w-full rounded-t-sm transition-all duration-300" style={{height:`${Math.max(4,(d.revenue/maxTrendRev)*88)}px`,background:C.pri}}/>
+                    <span className="text-[8px] text-slate-400 leading-none">{fmtDate(d.date)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Job count line */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Jobs completed per day</p>
+              <div className="flex items-end gap-1 h-14">
+                {trendData.map((d,i)=>(
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div className="w-full rounded-t-sm bg-emerald-400 transition-all duration-300" style={{height:`${Math.max(4,(d.count/maxTrendCount)*48)}px`}}/>
+                    <span className="text-[8px] font-bold text-emerald-700">{d.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Per-Employee Table */}
+        {es.length>0&&(
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <h2 className="text-base font-bold mb-4">By Employee</h2>
+            <div className="space-y-3">
+              {es.map(s=>(
+                <div key={s.e.id} className="border border-slate-100 rounded-xl p-4 hover:border-slate-200 transition">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-bold text-sm">{s.e.name}</h3>
+                      <p className="text-xs text-slate-400">{s.e.area||"—"}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-extrabold text-emerald-600">₹{s.rev}</div>
+                      <div className="text-[10px] text-slate-400">{s.done}/{s.tot} jobs</div>
+                    </div>
+                  </div>
+                  {/* Completion rate bar */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-[10px] font-semibold text-slate-500 mb-1">
+                      <span>Completion Rate</span><span className={s.rate>=80?"text-emerald-600":s.rate>=50?"text-amber-600":"text-red-600"}>{s.rate}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{width:`${s.rate}%`,background:s.rate>=80?"#16a34a":s.rate>=50?"#d97706":"#dc2626"}}/>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1.5 text-center">
+                    {[
+                      {v:s.pend,l:"Pending",c:"bg-amber-50 text-amber-700"},
+                      {v:s.nr,l:"N/Reach",c:"bg-red-50 text-red-600"},
+                      {v:s.rf,l:"Refused",c:"bg-rose-50 text-rose-600"},
+                      {v:`₹${s.cash}`,l:"Cash",c:"bg-amber-50 text-amber-800"},
+                      {v:`₹${s.upi}`,l:"UPI",c:"bg-violet-50 text-violet-700"},
+                      {v:s.hoses,l:"Hoses",c:"bg-purple-50 text-purple-700"},
+                    ].map((d,i)=>(
+                      <div key={i} className={`${d.c} rounded-lg py-1.5 px-1`}>
+                        <div className="text-xs font-bold">{d.v}</div>
+                        <div className="text-[8px] uppercase opacity-60 leading-none mt-0.5">{d.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Issues Panel */}
+        {(nr.length>0||rf.length>0)&&(
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <II.Warn s={18} className="text-red-500"/>
+              <h2 className="text-base font-bold">Follow-up Required <span className="text-red-500">({nr.length+rf.length})</span></h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[{l:"Not Reachable",jobs:nr,bg:"bg-red-50",border:"border-red-200",text:"text-red-700",icon:"🚫"},
+                {l:"Refused",jobs:rf,bg:"bg-rose-50",border:"border-rose-200",text:"text-rose-700",icon:"🙅"}
+              ].map(g=>g.jobs.length>0&&(
+                <div key={g.l} className={`${g.bg} border ${g.border} rounded-xl p-4`}>
+                  <div className="flex items-center gap-2 mb-3"><span className="text-lg">{g.icon}</span><h3 className={`font-bold text-sm ${g.text}`}>{g.l} ({g.jobs.length})</h3></div>
+                  <div className="space-y-2">
+                    {g.jobs.map(j=>(
+                      <div key={j.id} className="bg-white rounded-lg p-2.5">
+                        <div className="font-semibold text-xs text-slate-800">{j.customer_name||"N/A"}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{j.address}</div>
+                        {j.consumer_id&&<div className="text-[10px] text-indigo-500 font-mono mt-0.5">CUID: {j.consumer_id}</div>}
+                        {j.status_reason&&<div className={`text-[11px] mt-1 font-semibold ${g.text}`}>↳ {j.status_reason}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {inRange.length===0&&(
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-slate-200">
+            <div className="text-4xl mb-3">📭</div>
+            <h3 className="font-bold text-slate-600 mb-1">No jobs in this range</h3>
+            <p className="text-sm text-slate-400">Adjust the date filter or employee selection above</p>
+          </div>
+        )}
+      </div>
     </div>
-  </div>);
+  );
 }
 
 /*─── Public Landing Page ─────────────────────────────────────*/
