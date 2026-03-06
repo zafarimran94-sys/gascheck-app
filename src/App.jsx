@@ -202,11 +202,11 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const parseCsvText=(text)=>{
     const arr=[];const lines=text.trim().split(/\r?\n/);
     lines.forEach((l,i)=>{
-      if(i===0&&l.toLowerCase().includes("address"))return; // skip header
+      if(i===0&&(l.toLowerCase().includes("consumer")||l.toLowerCase().includes("name")||l.toLowerCase().includes("address")))return; // skip header
       const p=parseCsvLine(l); if(p.length<2)return;
-      const[addr,custName,custPhone,cuid,gasCo,gasAg,empName,area]=p;
-      const e=empName?emps.find(x=>x.name.toLowerCase()===empName.toLowerCase()||x.id===empName):null;
-      const clean=(v)=>(!v||v==="0"||v==="-")?null:v.trim();if(addr)arr.push({address:addr,customer_name:clean(custName),customer_phone:clean(custPhone),consumer_id:clean(cuid),gas_company_name:clean(gasCo),gas_agency_name:clean(gasAg),assigned_to:e?e.id:null,area:clean(area)||null});
+      const[cuid,custName,addr,custPhone,gasAg,gasCo,empName]=p;
+      const e=empName?emps.find(x=>x.name.toLowerCase()===empName.trim().toLowerCase()||x.id===empName.trim()):null;
+      const clean=(v)=>(!v||v==="0"||v==="-")?null:v.trim();if(addr||cuid)arr.push({consumer_id:clean(cuid),customer_name:clean(custName),address:clean(addr)||"",customer_phone:clean(custPhone),gas_agency_name:clean(gasAg),gas_company_name:clean(gasCo),assigned_to:e?e.id:null});
     });
     return arr;
   };
@@ -264,9 +264,9 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
       </div>
       <Modal open={showE} close={()=>setShowE(false)} title="Add Employee"><div className="space-y-4"><Inp label="Name" required value={nE.name} onChange={e=>setNE({...nE,name:e.target.value})} placeholder="Ramesh Kumar"/><Inp label="Phone" required value={nE.phone} onChange={e=>setNE({...nE,phone:e.target.value})} placeholder="9876543210"/><Inp label="Area" value={nE.area} onChange={e=>setNE({...nE,area:e.target.value})} placeholder="Rohini"/><button onClick={doAddE} className="w-full py-3 text-white rounded-lg font-semibold text-sm" style={{background:C.pri}}>Add Employee</button></div></Modal>
       <Modal open={showJ} close={()=>setShowJ(false)} title="Create Job" wide><Tabs tabs={[{k:"single",l:"Single"},{k:"bulk",l:"Bulk Upload"}]} a={jTab} set={setJTab}/>{jTab==="single"?<div className="mt-4"><JobForm emps={emps} onSave={async f=>{await onAddJob(f);setShowJ(false);}}/></div>:<div className="mt-4 space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800"><p className="font-semibold mb-1">CSV Format (8 columns):</p><p className="font-mono">address, customer_name, phone, CUID, gas_company, gas_agency, employee_name, area</p><p className="mt-1 text-blue-600">Employee name is optional — unassigned jobs can be bulk-assigned later from the jobs table.</p></div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800"><p className="font-semibold mb-1">CSV Format (7 columns, in order):</p><p className="font-mono">consumer_no, name, address, mobile, agency_name, gas_company, assigned_to</p><p className="mt-1 text-blue-600">• "assigned_to" = employee name (must match exactly). Leave blank to upload unassigned.<br/>• Date allotted is set automatically on upload.<br/>• First row treated as header and skipped if it contains text.</p></div>
         <div className="flex gap-2"><input ref={csvRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleCsvFile}/><button onClick={()=>csvRef.current?.click()} className="flex-1 py-4 border-2 border-dashed border-slate-300 rounded-xl font-semibold text-sm text-slate-600 hover:border-blue-400 hover:text-blue-600 flex items-center justify-center gap-2 transition"><II.File s={18}/>{bulk?"✓ File loaded — review below":"Upload CSV File"}</button></div>
-        <div><label className="block text-xs font-semibold text-slate-500 mb-1.5">Or paste CSV data directly:</label><textarea className="w-full px-3 py-3 border rounded-lg text-sm font-mono" rows={8} value={bulk} onChange={e=>setBulk(e.target.value)} placeholder={"address, customer_name, phone, CUID, gas_company, gas_agency, employee_name, area\nHouse 21, Sharma ji, 9876543210, 100234, IGL, Delhi Gas, Ramesh Kumar, Rohini\nFlat 305, Gupta, 9876501235, 100235, IGL, East Gas, , East Delhi"}/></div>
+        <div><label className="block text-xs font-semibold text-slate-500 mb-1.5">Or paste CSV data directly:</label><textarea className="w-full px-3 py-3 border rounded-lg text-sm font-mono" rows={8} value={bulk} onChange={e=>setBulk(e.target.value)} placeholder={"consumer_no, name, address, mobile, agency_name, gas_company, assigned_to\n100234, Sharma Ji, House 21 Sector 5 Rohini, 9876543210, Delhi Gas Agency, IGL, Ramesh Kumar\n100235, Gupta Ji, Flat 305 East Delhi, 9876501235, East Gas Agency, BPCL, "}/></div>
         {bulk&&<div className="bg-slate-50 rounded-lg p-3 text-xs text-slate-600"><p className="font-semibold mb-1">Preview: {parseCsvText(bulk).length} valid rows found</p>{parseCsvText(bulk).filter(r=>!r.assigned_to).length>0&&<p className="text-amber-600 font-semibold">{parseCsvText(bulk).filter(r=>!r.assigned_to).length} rows without employee — will be uploaded as unassigned</p>}</div>}
         <button onClick={doBulk} disabled={!bulk} className="w-full py-3 text-white rounded-lg font-semibold text-sm disabled:opacity-40" style={{background:C.pri}}>Upload {parseCsvText(bulk).length} Jobs</button>
       </div>}</Modal>
