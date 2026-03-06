@@ -5,6 +5,7 @@ const SB_URL = "https://ybyvhoyiifjfvxcuaeku.supabase.co";
 const SB_KEY = "sb_publishable_CeGC_3Qv1Qz14XpYMPgGyA_h3lB67mP";
 const APP = "LPG Inspection Care";
 const FIXED_AMT = 236;
+const HOSE_AMT = 190;
 const PAGE_SZ = 20;
 
 /*─── Supabase Client ────────────────────────────────────────*/
@@ -504,7 +505,8 @@ function FullChecklist({ onDone }) {
 
 /*─── Inspection ─────────────────────────────────────────────*/
 function Inspect({job,onDone,onBack,onUpd,show}){
-  const[step,setStep]=useState("arrival");const[jS,setJS]=useState("in-progress");const[reason,setReason]=useState("");const[vPhoto,setVPhoto]=useState(null);const[vPhotoUrl,setVPhotoUrl]=useState("");const[cl,setCl]=useState({pipe_condition:null,leak_test:null,regulator_condition:null});const[pay,setPay]=useState({type:"",upi:""});const[rcpt,setRcpt]=useState("");const[saving,setSaving]=useState(false);const[uploading,setUploading]=useState(false);const[gpsErr,setGpsErr]=useState("");const[gpsLd,setGpsLd]=useState(false);const[hose,setHose]=useState(false);const pRef=useRef(null);
+  const[step,setStep]=useState("arrival");const[jS,setJS]=useState("in-progress");const[reason,setReason]=useState("");const[vPhoto,setVPhoto]=useState(null);const[vPhotoUrl,setVPhotoUrl]=useState("");const[cl,setCl]=useState({pipe_condition:null,leak_test:null,regulator_condition:null});const[pay,setPay]=useState({type:"",upi:""});const[rcpt,setRcpt]=useState("");const[saving,setSaving]=useState(false);const[uploading,setUploading]=useState(false);const[gpsErr,setGpsErr]=useState("");const[gpsLd,setGpsLd]=useState(false);const[hoseInstalled,setHoseInstalled]=useState(false);const pRef=useRef(null);
+  const totalAmt = FIXED_AMT + (hoseInstalled ? HOSE_AMT : 0);
   const steps=["arrival","status","checklist","payment","receipt"];const prog=((steps.indexOf(step)+1)/steps.length)*100;
   const BB=({onClick,children,color,disabled})=><button onClick={onClick} disabled={disabled||saving} className="w-full py-5 rounded-xl font-extrabold text-lg text-white shadow-lg transition active:scale-[0.98] disabled:opacity-40" style={{background:color||"#059669"}}>{saving?<II.Spin s={20} className="animate-spin mx-auto"/>:children}</button>;
   const CO=({label,labelEn,sel,onSel,y="ok",n="not-ok",yL="हाँ / YES",nL="नहीं / NO",emoji})=><div className="p-5 bg-white rounded-xl border-2 border-slate-200 mb-4"><div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">{emoji}</div><div><p className="font-bold text-base">{label}</p><p className="text-sm text-slate-500">{labelEn}</p></div></div><div className="grid grid-cols-2 gap-3"><button onClick={()=>onSel(y)} className={`py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${sel===y?"bg-emerald-600 text-white shadow":"bg-slate-100 text-slate-700"}`}><II.Ok s={18}/>{yL}</button><button onClick={()=>onSel(n)} className={`py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${sel===n?"text-white shadow":"bg-slate-100 text-slate-700"}`} style={sel===n?{background:C.red}:{}}><II.No s={18}/>{nL}</button></div></div>;
@@ -514,8 +516,8 @@ function Inspect({job,onDone,onBack,onUpd,show}){
   const doPhoto=async e=>{const f=e.target.files?.[0];if(!f)return;setUploading(true);try{const compressed=await compressImage(f);const path=`validations/${job.id}_${Date.now()}.jpg`;const{error}=await sb.storage.upload("job-photos",path,compressed);if(error){show?.("Photo upload failed","error");console.error(error);}else{const url=sb.storage.getPublicUrl("job-photos",path);setVPhotoUrl(url);setVPhoto(URL.createObjectURL(compressed));}setUploading(false);}catch(err){show?.("Photo upload failed","error");setUploading(false);}};
   const doNonComplete=async()=>{if(vPhotoUrl&&reason){setSaving(true);await onUpd({status:jS,status_reason:reason,validation_photo_url:vPhotoUrl,completed_time:new Date().toISOString()});setSaving(false);onBack();}};
   const doPayDone=()=>{setRcpt(`RC${String(Math.floor(Math.random()*9999)+1).padStart(4,"0")}`);setStep("receipt");};
-  const doFinal=async()=>{setSaving(true);await onDone({payment_type:pay.type||"cash",payment_amount:FIXED_AMT,upi_transaction_id:pay.upi||null,receipt_number:rcpt,status:"completed",completed_time:new Date().toISOString()});setSaving(false);};
-  const shareR=()=>{const m=`${APP}\nReceipt: ${rcpt}\nCustomer: ${job.customer_name||"N/A"}\n${job.consumer_id?`CUID: ${job.consumer_id}\n`:""}Address: ${job.address}\nAmount: ₹${FIXED_AMT} (${(pay.type||"cash").toUpperCase()})\nDate: ${new Date().toLocaleDateString("en-IN")}`;window.open(`https://wa.me/?text=${encodeURIComponent(m)}`,"_blank");};
+  const doFinal=async()=>{setSaving(true);await onDone({payment_type:pay.type||"cash",payment_amount:totalAmt,upi_transaction_id:pay.upi||null,receipt_number:rcpt,status:"completed",completed_time:new Date().toISOString(),hose_installed:hoseInstalled});setSaving(false);};
+  const shareR=()=>{const m=`${APP}\nReceipt: ${rcpt}\nCustomer: ${job.customer_name||"N/A"}\n${job.consumer_id?`CUID: ${job.consumer_id}\n`:""}Address: ${job.address}\nInspection Fee: ₹${FIXED_AMT}${hoseInstalled?`\nसुरक्षा एलपीजी होज़ (नई): ₹${HOSE_AMT}`:""}\nTotal Amount: ₹${totalAmt} (${(pay.type||"cash").toUpperCase()})\nDate: ${new Date().toLocaleDateString("en-IN")}`;window.open(`https://wa.me/?text=${encodeURIComponent(m)}`,"_blank");};
   const printR=()=>{
     const w=window.open("","_blank","width=600,height=800");
     if(!w)return;
@@ -561,7 +563,7 @@ function Inspect({job,onDone,onBack,onUpd,show}){
       <div class="info-grid">
         ${[["Date / दिनांक",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Time / समय",new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"})],["Customer / ग्राहक",job.customer_name||"N/A"],["Address / पता",job.address],job.consumer_id?["Consumer ID",job.consumer_id]:null,job.customer_phone?["Phone / फोन",job.customer_phone]:null,job.gas_company_name?["Gas Company",job.gas_company_name]:null,job.gas_agency_name?["Gas Agency",job.gas_agency_name]:null].filter(Boolean).map(([l,v])=>`<div class="info-row"><span class="l">${l}:</span><span class="v">${v}</span></div>`).join("")}
       </div>
-      <div class="amt"><div class="s">Amount Paid / भुगतान</div><div class="n">₹${FIXED_AMT}</div><div class="s">${(pay.type||"cash").toUpperCase()}${pay.upi?" • Ref: "+pay.upi:""}</div></div>
+      <div class="amt"><div class="s">Amount Paid / भुगतान</div><div class="n">₹${totalAmt}</div>${hoseInstalled?`<div class="s" style="font-size:11px;margin-top:4px">निरीक्षण शुल्क: ₹${FIXED_AMT} + सुरक्षा एलपीजी होज़: ₹${HOSE_AMT}</div>`:`<div class="s">निरीक्षण शुल्क / Inspection Fee</div>`}<div class="s">${(pay.type||"cash").toUpperCase()}${pay.upi?" • Ref: "+pay.upi:""}</div></div>
 
       ${(()=>{const hasBad=checklistSections.some((sec,si)=>sec.items.some((item,qi)=>{const val=cl["s"+si+"_q"+qi];return val!==undefined&&val!==item.good;}));return hasBad?'<div class="unsafe">⚠️ Unsafe Inspection: Changes / Repairs are Recommended — असुरक्षित निरीक्षण: सुधार आवश्यक है</div>':'';})()}
       <div style="font-size:13px;font-weight:800;color:#0f2557;margin-bottom:8px;border-bottom:2px solid #0f2557;padding-bottom:4px">निरीक्षण चेकलिस्ट / Inspection Checklist</div>
@@ -587,13 +589,53 @@ function Inspect({job,onDone,onBack,onUpd,show}){
 
         {step==="checklist"&&<FullChecklist onDone={data=>{setCl(data);setStep("payment");}}/>}
 
-        {step==="payment"&&<div className="bg-white rounded-xl shadow-sm p-6"><div className="text-center mb-6"><div className="text-4xl mb-2">💰</div><h2 className="text-2xl font-extrabold">Payment</h2></div><div className="bg-slate-50 rounded-xl p-5 text-center mb-6"><p className="text-xs text-slate-500 uppercase mb-1">Fixed Amount</p><p className="text-4xl font-extrabold" style={{color:C.pri}}>₹{FIXED_AMT}</p></div><p className="text-sm font-semibold text-center mb-3 text-slate-600">Payment Method</p><div className="grid grid-cols-2 gap-3 mb-6">{[{t:"cash",e:"💵",n:"CASH"},{t:"upi",e:"📱",n:"UPI"}].map(p=><button key={p.t} onClick={()=>setPay({...pay,type:p.t})} className={`py-5 rounded-xl font-bold text-sm flex flex-col items-center gap-2 border-2 transition ${pay.type===p.t?"border-emerald-600 bg-emerald-50":"border-slate-200"}`}><span className="text-2xl">{p.e}</span>{p.n}</button>)}</div>{pay.type==="upi"&&<div className="mb-5 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl text-center"><p className="text-xs font-bold text-violet-700 uppercase mb-3">Scan to Pay — PhonePe</p><img src="https://en.wikipedia.org/wiki/QR_code"alt="PhonePe QR" className="w-48 h-48 mx-auto rounded-xl border border-violet-200 mb-3"/><p className="text-xs text-slate-500 mb-2">Enter Transaction ID after payment</p><input className="w-full px-3 py-2.5 border border-violet-300 rounded-lg text-sm bg-white text-center font-mono" placeholder="UPI Transaction ID" value={pay.upi} onChange={e=>setPay({...pay,upi:e.target.value})}/></div>}{pay.type&&(pay.type!=="upi"||pay.upi)&&<BB onClick={doPayDone}>Generate Receipt</BB>}</div>}
+        {step==="payment"&&<div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="text-center mb-6"><div className="text-4xl mb-2">💰</div><h2 className="text-2xl font-extrabold">Payment</h2></div>
+          {/* Suraksha LPG Hose checkbox */}
+          <div className={`mb-5 rounded-xl border-2 p-4 transition cursor-pointer select-none ${hoseInstalled?"border-emerald-500 bg-emerald-50":"border-slate-200 bg-slate-50"}`} onClick={()=>setHoseInstalled(h=>!h)}>
+            <div className="flex items-center gap-4">
+              <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition ${hoseInstalled?"border-emerald-600 bg-emerald-600":"border-slate-300 bg-white"}`}>
+                {hoseInstalled&&<II.Ok s={14} className="text-white"/>}
+              </div>
+              <div className="flex-1">
+                <p className="font-extrabold text-sm">सुरक्षा एलपीजी होज़ लगाई गई</p>
+                <p className="text-xs text-slate-500 mt-0.5">New Suraksha LPG Hose Installed</p>
+              </div>
+              <div className={`text-sm font-extrabold ${hoseInstalled?"text-emerald-700":"text-slate-400"}`}>+₹{HOSE_AMT}</div>
+            </div>
+          </div>
+          {/* Amount breakdown */}
+          <div className="bg-slate-50 rounded-xl p-5 text-center mb-6">
+            {hoseInstalled ? (
+              <div>
+                <div className="flex justify-between text-sm text-slate-500 mb-1 px-2"><span>निरीक्षण शुल्क</span><span>₹{FIXED_AMT}</span></div>
+                <div className="flex justify-between text-sm text-slate-500 mb-3 px-2"><span>सुरक्षा एलपीजी होज़</span><span>₹{HOSE_AMT}</span></div>
+                <div className="border-t border-slate-200 pt-3"><p className="text-xs text-slate-500 uppercase mb-1">Total Amount</p><p className="text-4xl font-extrabold" style={{color:C.pri}}>₹{totalAmt}</p></div>
+              </div>
+            ) : (
+              <div><p className="text-xs text-slate-500 uppercase mb-1">Fixed Amount</p><p className="text-4xl font-extrabold" style={{color:C.pri}}>₹{FIXED_AMT}</p></div>
+            )}
+          </div>
+          <p className="text-sm font-semibold text-center mb-3 text-slate-600">Payment Method</p><div className="grid grid-cols-2 gap-3 mb-6">{[{t:"cash",e:"💵",n:"CASH"},{t:"upi",e:"📱",n:"UPI"}].map(p=><button key={p.t} onClick={()=>setPay({...pay,type:p.t})} className={`py-5 rounded-xl font-bold text-sm flex flex-col items-center gap-2 border-2 transition ${pay.type===p.t?"border-emerald-600 bg-emerald-50":"border-slate-200"}`}><span className="text-2xl">{p.e}</span>{p.n}</button>)}</div>{pay.type==="upi"&&<div className="mb-5 p-4 bg-violet-50 border-2 border-violet-200 rounded-xl text-center"><p className="text-xs font-bold text-violet-700 uppercase mb-3">Scan to Pay — PhonePe</p><img src="https://en.wikipedia.org/wiki/QR_code"alt="PhonePe QR" className="w-48 h-48 mx-auto rounded-xl border border-violet-200 mb-3"/><p className="text-xs text-slate-500 mb-2">Enter Transaction ID after payment</p><input className="w-full px-3 py-2.5 border border-violet-300 rounded-lg text-sm bg-white text-center font-mono" placeholder="UPI Transaction ID" value={pay.upi} onChange={e=>setPay({...pay,upi:e.target.value})}/></div>}{pay.type&&(pay.type!=="upi"||pay.upi)&&<BB onClick={doPayDone}>Generate Receipt</BB>}
+        </div>}
 
         {step==="receipt"&&<div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
           <div className="p-5 text-center border-b-2" style={{background:C.pri,borderColor:C.red}}><h2 className="text-lg font-extrabold text-white">{APP}</h2><p className="text-blue-200/60 text-xs">Gas Safety Inspection Receipt</p></div>
           <div className="p-5"><div className="text-center mb-4"><p className="text-2xl font-extrabold tracking-widest" style={{color:C.pri}}>{rcpt}</p></div>
             <div className="border border-slate-200 rounded-lg overflow-hidden mb-4"><table className="w-full text-sm">{[["Date",new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"})],["Customer",job.customer_name||"N/A"],["Address",job.address],job.consumer_id&&["CUID",job.consumer_id],job.gas_company_name&&["Company",job.gas_company_name],job.gas_agency_name&&["Agency",job.gas_agency_name]].filter(Boolean).map(([l,v],i)=><tr key={i} className={i%2===0?"bg-slate-50":""}><td className="px-3 py-2 text-slate-500 text-xs border-r w-[35%]">{l}</td><td className="px-3 py-2 font-medium text-xs">{v}</td></tr>)}</table></div>
-            <div className="bg-emerald-50 border-2 border-emerald-500 rounded-lg p-4 text-center mb-4"><p className="text-xs text-emerald-600 uppercase font-bold mb-1">Paid</p><p className="text-3xl font-extrabold text-emerald-700">₹{FIXED_AMT}</p><p className="text-xs text-emerald-600 mt-1">{(pay.type||"cash").toUpperCase()}</p></div>
+            {hoseInstalled ? (
+              <div className="bg-emerald-50 border-2 border-emerald-500 rounded-lg p-4 mb-4">
+                <div className="flex justify-between text-sm text-emerald-700 mb-1 font-medium"><span>निरीक्षण शुल्क</span><span>₹{FIXED_AMT}</span></div>
+                <div className="flex justify-between text-sm text-emerald-700 mb-3 font-medium"><span>सुरक्षा एलपीजी होज़ (नई)</span><span>₹{HOSE_AMT}</span></div>
+                <div className="border-t border-emerald-300 pt-3 text-center">
+                  <p className="text-xs text-emerald-600 uppercase font-bold mb-1">Total Paid</p>
+                  <p className="text-3xl font-extrabold text-emerald-700">₹{totalAmt}</p>
+                  <p className="text-xs text-emerald-600 mt-1">{(pay.type||"cash").toUpperCase()}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-emerald-50 border-2 border-emerald-500 rounded-lg p-4 text-center mb-4"><p className="text-xs text-emerald-600 uppercase font-bold mb-1">Paid</p><p className="text-3xl font-extrabold text-emerald-700">₹{FIXED_AMT}</p><p className="text-xs text-emerald-600 mt-1">{(pay.type||"cash").toUpperCase()}</p></div>
+            )}
             
             <div className="grid grid-cols-3 gap-2"><button onClick={shareR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1"><II.Share s={16} className="text-slate-500"/>WhatsApp</button><button onClick={printR} className="py-3 border border-slate-200 rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{color:C.pri}}><II.Pdf s={16}/>Print PDF</button><button onClick={doFinal} disabled={saving} className="py-3 text-white rounded-lg text-xs font-semibold flex flex-col items-center gap-1" style={{background:"#059669"}}>{saving?<II.Spin s={16} className="animate-spin"/>:<II.Ok s={16}/>}Done</button></div>
           </div></div>}
