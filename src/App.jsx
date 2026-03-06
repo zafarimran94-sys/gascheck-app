@@ -91,16 +91,17 @@ const II = {
 };
 
 // Logo component using uploaded image
+const LOGO_URL = "https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/SVG%20(1).png";
 const AppLogo = ({ s = 32, className = "" }) => (
-  <img src="/logo.png" alt={APP} width={s} height={s} className={`rounded-full object-cover ${className}`}/>
+  <img src={LOGO_URL} alt={APP} width={s} height={s} className={`object-contain ${className}`}/>
 );
 
 /*─── Theme ──────────────────────────────────────────────────*/
 const C = { pri: "#0f2557", priL: "#1e3a5f", red: "#dc2626", bg: "#f0f4f8" };
 
 /*─── Shared ─────────────────────────────────────────────────*/
-const statusMap = { pending:"PENDING","in-progress":"IN PROGRESS",completed:"COMPLETED","customer-not-reachable":"NOT REACHABLE","customer-refused":"REFUSED",rescheduled:"RESCHEDULED" };
-const statusColor = { pending:"bg-amber-100 text-amber-800 border-amber-300","in-progress":"bg-sky-100 text-sky-800 border-sky-300",completed:"bg-emerald-100 text-emerald-800 border-emerald-300","customer-not-reachable":"bg-red-100 text-red-800 border-red-300","customer-refused":"bg-rose-100 text-rose-800 border-rose-300",rescheduled:"bg-violet-100 text-violet-800 border-violet-300" };
+const statusMap = { pending:"PENDING",completed:"COMPLETED","customer-not-reachable":"NOT REACHABLE","customer-refused":"REFUSED",rescheduled:"RESCHEDULED" };
+const statusColor = { pending:"bg-amber-100 text-amber-800 border-amber-300",completed:"bg-emerald-100 text-emerald-800 border-emerald-300","customer-not-reachable":"bg-red-100 text-red-800 border-red-300","customer-refused":"bg-rose-100 text-rose-800 border-rose-300",rescheduled:"bg-violet-100 text-violet-800 border-violet-300" };
 const SBadge = ({ s }) => <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wide border ${statusColor[s]||"bg-gray-100 border-gray-200"}`}>{statusMap[s]||s}</span>;
 const Bdg = ({ children, v }) => <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold ${{outline:"border border-slate-300 text-slate-600",success:"bg-emerald-100 text-emerald-800",danger:"bg-red-100 text-red-800"}[v]||"bg-slate-800 text-white"}`}>{children}</span>;
 const Tabs = ({ tabs, a, set }) => <div className="flex bg-white rounded-lg p-1 gap-1 border border-slate-200">{tabs.map(t=><button key={t.k} onClick={()=>set(t.k)} className={`flex-1 py-2.5 px-3 rounded-md text-sm font-semibold transition ${a===t.k?"text-white shadow-sm":"text-slate-500"}`} style={a===t.k?{background:C.pri}:{}}>{t.l}</button>)}</div>;
@@ -177,7 +178,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const agencies=useMemo(()=>[...new Set(jobs.map(j=>j.gas_agency_name).filter(Boolean))].sort(),[jobs]);
   const filtered=useMemo(()=>{let r=jobs;if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql)||(j.area||"").toLowerCase().includes(ql));}if(fAg)r=r.filter(j=>j.gas_agency_name===fAg);if(fDC)r=r.filter(j=>j.completed_time&&j.completed_time.startsWith(fDC));if(fDA)r=r.filter(j=>j.created_at&&j.created_at.startsWith(fDA));if(fEmp)r=r.filter(j=>j.assigned_to===fEmp);if(fSt)r=r.filter(j=>j.status===fSt);return r;},[jobs,q,fAg,fDC,fDA,fEmp,fSt]);
   const paged=filtered.slice(pg*PAGE_SZ,(pg+1)*PAGE_SZ);
-  const tot=jobs.length,done=jobs.filter(j=>j.status==="completed").length,pend=jobs.filter(j=>j.status==="pending"||j.status==="in-progress").length;
+  const tot=jobs.length,done=jobs.filter(j=>j.status==="completed").length,pend=jobs.filter(j=>j.status==="pending").length;
   const cash=jobs.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const upi=jobs.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const eName=id=>emps.find(e=>e.id===id)?.name||"—";
@@ -237,7 +238,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
           {showF&&<div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Gas Agency</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={fAg} onChange={e=>{setFAg(e.target.value);setPg(0);}}><option value="">All Agencies</option>{agencies.map(a=><option key={a}>{a}</option>)}</select></div>
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Assigned Employee</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={fEmp} onChange={e=>{setFEmp(e.target.value);setPg(0);}}><option value="">All Employees</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></div>
-            <div><label className="block text-xs font-semibold text-slate-500 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={fSt} onChange={e=>{setFSt(e.target.value);setPg(0);}}><option value="">All Statuses</option><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="completed">Completed</option><option value="customer-not-reachable">Not Reachable</option><option value="customer-refused">Refused</option><option value="rescheduled">Rescheduled</option></select></div>
+            <div><label className="block text-xs font-semibold text-slate-500 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={fSt} onChange={e=>{setFSt(e.target.value);setPg(0);}}><option value="">All Statuses</option><option value="pending">Pending</option><option value="completed">Completed</option><option value="customer-not-reachable">Not Reachable</option><option value="customer-refused">Refused</option><option value="rescheduled">Rescheduled</option></select></div>
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Date Completed</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-sm" value={fDC} onChange={e=>{setFDC(e.target.value);setPg(0);}}/></div>
             <div><label className="block text-xs font-semibold text-slate-500 mb-1">Date Added</label><input type="date" className="w-full px-3 py-2 border rounded-lg text-sm" value={fDA} onChange={e=>{setFDA(e.target.value);setPg(0);}}/></div>
             {hasFilters&&<div className="flex items-end"><button onClick={()=>{setFAg("");setFDC("");setFDA("");setFEmp("");setFSt("");}} className="text-xs text-red-600 font-semibold underline">Clear all filters</button></div>}
@@ -258,7 +259,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
         </div>}
 
         {tab==="employees"&&<div className="mt-4"><div className="flex justify-between items-center mb-4 flex-wrap gap-2"><h2 className="text-lg font-bold">Field Workers</h2><div className="flex gap-2"><button onClick={()=>setShowAcct(true)} className="flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-semibold shadow" style={{background:C.red}}><II.Key s={16}/>Create Login</button><button onClick={()=>setShowE(true)} className="flex items-center gap-2 px-4 py-2.5 text-white rounded-lg text-sm font-semibold shadow" style={{background:C.pri}}><II.Plus s={16}/>Add Employee</button></div></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{emps.map(e=>{const ej=jobs.filter(j=>j.assigned_to===e.id),dn=ej.filter(j=>j.status==="completed").length,pd=ej.filter(j=>j.status==="pending"||j.status==="in-progress").length;return<div key={e.id} className="bg-white rounded-xl shadow-sm border p-5"><div className="flex items-start justify-between mb-3"><div><h3 className="font-bold">{e.name}</h3><p className="text-sm text-slate-500">{e.phone}</p>{e.area&&<p className="text-xs text-slate-400 mt-0.5">{e.area}</p>}</div><div className="flex items-center gap-1"><div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background:"#e8edf5"}}><II.User s={16} style={{color:C.pri}}/></div><button onClick={()=>setDelE(e.id)} className="p-1.5 rounded hover:bg-red-50"><II.Trash s={15} className="text-slate-300 hover:text-red-500"/></button></div></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{emps.map(e=>{const ej=jobs.filter(j=>j.assigned_to===e.id),dn=ej.filter(j=>j.status==="completed").length,pd=ej.filter(j=>j.status==="pending").length;return<div key={e.id} className="bg-white rounded-xl shadow-sm border p-5"><div className="flex items-start justify-between mb-3"><div><h3 className="font-bold">{e.name}</h3><p className="text-sm text-slate-500">{e.phone}</p>{e.area&&<p className="text-xs text-slate-400 mt-0.5">{e.area}</p>}</div><div className="flex items-center gap-1"><div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{background:"#e8edf5"}}><II.User s={16} style={{color:C.pri}}/></div><button onClick={()=>setDelE(e.id)} className="p-1.5 rounded hover:bg-red-50"><II.Trash s={15} className="text-slate-300 hover:text-red-500"/></button></div></div>
             <div className="grid grid-cols-3 gap-2 text-center mb-3">{[{v:ej.length,l:"Total",c:"bg-slate-50"},{v:dn,l:"Done",c:"bg-emerald-50"},{v:pd,l:"Pending",c:"bg-amber-50"}].map((d,i)=><div key={i} className={`${d.c} rounded-lg py-1.5`}><div className="text-base font-bold">{d.v}</div><div className="text-[9px] text-slate-500 uppercase">{d.l}</div></div>)}</div>
             <div className="flex gap-2">{e.profile_id?<span className="text-[10px] px-2 py-1 bg-emerald-100 text-emerald-700 rounded font-semibold">Has Login</span>:<span className="text-[10px] px-2 py-1 bg-slate-100 text-slate-500 rounded font-semibold">No Login</span>}<div className="flex-1"/><button onClick={()=>onViewEmp(e.id)} className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"><II.Eye s={14}/>View</button></div>
           </div>})}</div></div>}
@@ -284,13 +285,13 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
                 {[
                   {l:"Total in view",v:auditJobs.length,bg:"bg-slate-700"},
                   {l:"GPS captured",v:`${gpsOk} / ${auditJobs.length}`,bg:gpsOk===auditJobs.length?"bg-emerald-600":"bg-amber-500"},
-                  {l:"Photos uploaded",v:`${photoOk} / ${auditJobs.filter(j=>j.status!=="completed"&&j.status!=="pending"&&j.status!=="in-progress").length}`,bg:photoOk===auditJobs.filter(j=>j.validation_photo_url!==undefined&&j.status!=="pending"&&j.status!=="in-progress").length?"bg-emerald-600":"bg-amber-500"},
+                  {l:"Photos uploaded",v:`${photoOk} / ${auditJobs.filter(j=>j.status!=="completed"&&j.status!=="pending").length}`,bg:photoOk===auditJobs.filter(j=>j.validation_photo_url!==undefined&&j.status!=="pending").length?"bg-emerald-600":"bg-amber-500"},
                 ].map((s,i)=><div key={i} className={`${s.bg} text-white rounded-xl p-3 text-center`}><div className="text-lg font-extrabold">{s.v}</div><div className="text-[10px] uppercase opacity-60 mt-0.5">{s.l}</div></div>)}
               </div>
               {/* Filters */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div><label className="block text-xs font-semibold text-slate-500 mb-1">Employee</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditEmp} onChange={e=>{setAuditEmp(e.target.value);setAuditPg(0);}}><option value="">All</option>{emps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></div>
-                <div><label className="block text-xs font-semibold text-slate-500 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditSt} onChange={e=>{setAuditSt(e.target.value);setAuditPg(0);}}><option value="">All</option><option value="completed">Completed</option><option value="in-progress">In Progress</option><option value="customer-not-reachable">Not Reachable</option><option value="customer-refused">Refused</option><option value="pending">Pending</option></select></div>
+                <div><label className="block text-xs font-semibold text-slate-500 mb-1">Status</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditSt} onChange={e=>{setAuditSt(e.target.value);setAuditPg(0);}}><option value="">All</option><option value="pending">Pending</option><option value="completed">Completed</option><option value="customer-not-reachable">Not Reachable</option><option value="customer-refused">Refused</option><option value="rescheduled">Rescheduled</option></select></div>
                 <div><label className="block text-xs font-semibold text-slate-500 mb-1">GPS</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditGps} onChange={e=>{setAuditGps(e.target.value);setAuditPg(0);}}><option value="">Any</option><option value="yes">✅ Captured</option><option value="no">❌ Missing</option></select></div>
                 <div><label className="block text-xs font-semibold text-slate-500 mb-1">Proof Photo</label><select className="w-full px-3 py-2 border rounded-lg text-sm bg-white" value={auditPhoto} onChange={e=>{setAuditPhoto(e.target.value);setAuditPg(0);}}><option value="">Any</option><option value="yes">✅ Uploaded</option><option value="no">❌ Missing</option></select></div>
               </div>
@@ -314,10 +315,12 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
                             <td className="px-4 py-3 text-xs font-medium text-slate-700 whitespace-nowrap">{empName}</td>
                             <td className="px-4 py-3"><SBadge s={j.status}/></td>
                             <td className="px-4 py-3">
-                              {hasGps
-                                ?<a href={`https://www.google.com/maps?q=${j.gps_lat},${j.gps_lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:underline whitespace-nowrap"><II.Ok s={14}/>View Map</a>
-                                :<span className="flex items-center gap-1 text-xs font-bold text-red-500"><II.No s={14}/>Missing</span>}
-                              {hasGps&&<div className="text-[9px] text-slate-400 font-mono mt-0.5">{(+j.gps_lat).toFixed(4)}, {(+j.gps_lng).toFixed(4)}</div>}
+                              {j.status==="pending"
+                                ?<span className="text-xs text-slate-300">—</span>
+                                :hasGps
+                                  ?<a href={`https://www.google.com/maps?q=${j.gps_lat},${j.gps_lng}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:underline whitespace-nowrap"><II.Ok s={14}/>View Map</a>
+                                  :<span className="flex items-center gap-1 text-xs font-bold text-red-500"><II.No s={14}/>Missing</span>}
+                              {j.status!=="pending"&&hasGps&&<div className="text-[9px] text-slate-400 font-mono mt-0.5">{(+j.gps_lat).toFixed(4)}, {(+j.gps_lng).toFixed(4)}</div>}
                             </td>
                             <td className="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">{arrivalFmt}</td>
                             <td className="px-4 py-3">
@@ -358,15 +361,15 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
 function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
   const[q,setQ]=useState("");const[pg,setPg]=useState(0);const[sort,setSort]=useState("newest");
   if(!emp)return<div className="min-h-screen flex items-center justify-center" style={{background:C.bg}}><div className="text-center p-8 bg-white rounded-xl shadow"><p className="text-slate-500 mb-4">Employee not found</p>{onBack&&<button onClick={onBack} className="px-6 py-2 text-white rounded-lg text-sm" style={{background:C.pri}}>Back</button>}</div></div>;
-  const all=useMemo(()=>{let r=[...jobs];if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql));}if(sort==="newest")r.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));else if(sort==="oldest")r.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));else if(sort==="status"){const o={pending:0,"in-progress":1,"customer-not-reachable":2,"customer-refused":3,rescheduled:4,completed:5};r.sort((a,b)=>(o[a.status]??9)-(o[b.status]??9));}return r;},[jobs,q,sort]);
-  const pend=all.filter(j=>j.status==="pending"||j.status==="in-progress");
-  const other=all.filter(j=>!["pending","in-progress"].includes(j.status));
+  const all=useMemo(()=>{let r=[...jobs];if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql));}if(sort==="newest")r.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));else if(sort==="oldest")r.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));else if(sort==="status"){const o={pending:0,"customer-not-reachable":1,"customer-refused":2,rescheduled:3,completed:4};r.sort((a,b)=>(o[a.status]??9)-(o[b.status]??9));}return r;},[jobs,q,sort]);
+  const pend=all.filter(j=>j.status==="pending");
+  const other=all.filter(j=>j.status!=="pending");
   const shown=[...pend,...other];
   const paged=shown.slice(pg*PAGE_SZ,(pg+1)*PAGE_SZ);
-  const pendC=jobs.filter(j=>j.status==="pending"||j.status==="in-progress").length;
+  const pendC=jobs.filter(j=>j.status==="pending").length;
   const doneC=jobs.filter(j=>j.status==="completed").length;
 
-  const JobCard=({j})=>{const isPend=j.status==="pending"||j.status==="in-progress";return(
+  const JobCard=({j})=>{const isPend=j.status==="pending";return(
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${isPend?"border-l-4":"border-slate-200"}`} style={isPend?{borderLeftColor:C.red}:{}}>
       <div className="p-4">
         {j.consumer_id&&<div className="mb-3 px-3 py-2 rounded-lg flex items-center gap-2" style={{background:"#eef2ff",border:"2px solid #c7d2fe"}}><span className="text-xs font-bold text-indigo-500 uppercase tracking-wide">CUID</span><span className="text-xl font-extrabold text-indigo-800 font-mono tracking-widest">{j.consumer_id}</span></div>}
@@ -581,13 +584,13 @@ function FullChecklist({ onDone }) {
 
 /*─── Inspection ─────────────────────────────────────────────*/
 function Inspect({job,onDone,onBack,onUpd,show}){
-  const[step,setStep]=useState("arrival");const[jS,setJS]=useState("in-progress");const[reason,setReason]=useState("");const[vPhoto,setVPhoto]=useState(null);const[vPhotoUrl,setVPhotoUrl]=useState("");const[cl,setCl]=useState({pipe_condition:null,leak_test:null,regulator_condition:null});const[pay,setPay]=useState({type:"",upi:""});const[rcpt,setRcpt]=useState("");const[saving,setSaving]=useState(false);const[uploading,setUploading]=useState(false);const[gpsErr,setGpsErr]=useState("");const[gpsLd,setGpsLd]=useState(false);const[hoseInstalled,setHoseInstalled]=useState(false);const pRef=useRef(null);
+  const[step,setStep]=useState("arrival");const[jS,setJS]=useState("pending");const[reason,setReason]=useState("");const[vPhoto,setVPhoto]=useState(null);const[vPhotoUrl,setVPhotoUrl]=useState("");const[cl,setCl]=useState({pipe_condition:null,leak_test:null,regulator_condition:null});const[pay,setPay]=useState({type:"",upi:""});const[rcpt,setRcpt]=useState("");const[saving,setSaving]=useState(false);const[uploading,setUploading]=useState(false);const[gpsErr,setGpsErr]=useState("");const[gpsLd,setGpsLd]=useState(false);const[hoseInstalled,setHoseInstalled]=useState(false);const pRef=useRef(null);
   const totalAmt = FIXED_AMT + (hoseInstalled ? HOSE_AMT : 0);
   const steps=["arrival","status","checklist","payment","receipt"];const prog=((steps.indexOf(step)+1)/steps.length)*100;
   const BB=({onClick,children,color,disabled})=><button onClick={onClick} disabled={disabled||saving} className="w-full py-5 rounded-xl font-extrabold text-lg text-white shadow-lg transition active:scale-[0.98] disabled:opacity-40" style={{background:color||"#059669"}}>{saving?<II.Spin s={20} className="animate-spin mx-auto"/>:children}</button>;
   const CO=({label,labelEn,sel,onSel,y="ok",n="not-ok",yL="हाँ / YES",nL="नहीं / NO",emoji})=><div className="p-5 bg-white rounded-xl border-2 border-slate-200 mb-4"><div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-2xl">{emoji}</div><div><p className="font-bold text-base">{label}</p><p className="text-sm text-slate-500">{labelEn}</p></div></div><div className="grid grid-cols-2 gap-3"><button onClick={()=>onSel(y)} className={`py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${sel===y?"bg-emerald-600 text-white shadow":"bg-slate-100 text-slate-700"}`}><II.Ok s={18}/>{yL}</button><button onClick={()=>onSel(n)} className={`py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition ${sel===n?"text-white shadow":"bg-slate-100 text-slate-700"}`} style={sel===n?{background:C.red}:{}}><II.No s={18}/>{nL}</button></div></div>;
 
-  const doArrival=async()=>{setGpsLd(true);setGpsErr("");if(!navigator.geolocation){setGpsErr("GPS not available");setGpsLd(false);return;}navigator.geolocation.getCurrentPosition(pos=>{const now=new Date().toISOString();onUpd({status:"in-progress",arrival_time:now,gps_lat:pos.coords.latitude,gps_lng:pos.coords.longitude});setGpsLd(false);setStep("status");},err=>{if(err.code===1)setGpsErr("Location permission denied. Enable GPS.");else setGpsErr("Could not get location. Try again.");setGpsLd(false);},{enableHighAccuracy:true,timeout:15000});};
+  const doArrival=async()=>{setGpsLd(true);setGpsErr("");if(!navigator.geolocation){setGpsErr("GPS not available");setGpsLd(false);return;}navigator.geolocation.getCurrentPosition(pos=>{const now=new Date().toISOString();onUpd({arrival_time:now,gps_lat:pos.coords.latitude,gps_lng:pos.coords.longitude});setGpsLd(false);setStep("status");},err=>{if(err.code===1)setGpsErr("Location permission denied. Enable GPS.");else setGpsErr("Could not get location. Try again.");setGpsLd(false);},{enableHighAccuracy:true,timeout:15000});};
 
   const doPhoto=async e=>{const f=e.target.files?.[0];if(!f)return;setUploading(true);try{const compressed=await compressImage(f);const path=`validations/${job.id}_${Date.now()}.jpg`;const{error}=await sb.storage.upload("job-photos",path,compressed);if(error){show?.("Photo upload failed","error");console.error(error);}else{const url=sb.storage.getPublicUrl("job-photos",path);setVPhotoUrl(url);setVPhoto(URL.createObjectURL(compressed));}setUploading(false);}catch(err){show?.("Photo upload failed","error");setUploading(false);}};
   const doNonComplete=async()=>{if(vPhotoUrl&&reason){setSaving(true);await onUpd({status:jS,status_reason:reason,validation_photo_url:vPhotoUrl,completed_time:new Date().toISOString()});setSaving(false);onBack();}};
@@ -607,7 +610,7 @@ function Inspect({job,onDone,onBack,onUpd,show}){
       }).join("");
       return '<div class="sec"><div class="sec-hdr">'+sec.title+'</div><table class="qtable">'+rows+'</table></div>';
     }).join("");
-    w.document.write(`<!DOCTYPE html><html><head><title>Inspection Report – ${rcpt}</title><style>
+    w.document.write(`<!DOCTYPE html><html><head><title>Inspection Report – ${rcpt}</title><link rel="icon" type="image/png" href="https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/SVG%20(1).png"/><style>
       *{margin:0;padding:0;box-sizing:border-box}
       body{font-family:Arial,sans-serif;padding:20px;max-width:600px;margin:0 auto;font-size:12px;color:#111}
       .hdr{text-align:center;border-bottom:3px solid #0f2557;padding-bottom:14px;margin-bottom:14px}
@@ -660,7 +663,7 @@ function Inspect({job,onDone,onBack,onUpd,show}){
         {step==="arrival"&&<div className="bg-white rounded-xl shadow-sm p-8 text-center"><AppLogo s={64} className="mx-auto mb-4"/><h2 className="text-2xl font-extrabold mb-1">क्या आप पहुँच गए?</h2><p className="text-lg text-slate-500 mb-6">Did you reach?</p><div className="bg-slate-50 rounded-xl p-4 mb-6 text-left"><p className="font-bold text-sm">{job.address}</p>{job.customer_phone&&<p className="text-sm text-slate-500 mt-1">📞 {job.customer_phone}</p>}</div>{gpsErr&&<div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4 text-left">{gpsErr}</div>}<BB onClick={doArrival} disabled={gpsLd} color={C.pri}>{gpsLd?<><II.Spin s={24} className="animate-spin inline mr-2"/>Getting location...</>:"Confirm Arrival / पहुँच गया"}</BB><p className="text-xs text-slate-400 mt-3">GPS location will be recorded</p></div>}
 
         {step==="status"&&<div className="bg-white rounded-xl shadow-sm p-6"><h2 className="text-xl font-extrabold text-center mb-1">क्या हुआ?</h2><p className="text-sm text-slate-500 text-center mb-6">What happened?</p><div className="space-y-3">{[{s:"completed",e:"✅",h:"काम पूरा हुआ",n:"Completed"},{s:"customer-not-reachable",e:"🚫",h:"ग्राहक नहीं मिला",n:"Not Reachable"},{s:"customer-refused",e:"🙅",h:"ग्राहक ने मना किया",n:"Refused"},{s:"rescheduled",e:"📅",h:"दोबारा करना है",n:"Reschedule"}].map(o=><button key={o.s} onClick={()=>{setJS(o.s);if(o.s==="completed")setStep("checklist");}} className={`w-full py-5 rounded-xl font-bold text-base flex items-center gap-4 px-5 border-2 transition ${jS===o.s&&o.s!=="completed"?"text-white":"border-slate-200 hover:border-slate-400"}`} style={jS===o.s&&o.s!=="completed"?{background:C.pri,borderColor:C.pri}:{}}><span className="text-2xl">{o.e}</span><div className="text-left"><div>{o.h}</div><div className="text-sm opacity-70 font-normal">{o.n}</div></div></button>)}</div>
-          {jS!=="completed"&&jS!=="in-progress"&&<div className="mt-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-4"><p className="font-bold text-amber-900">Proof Required</p><div><input ref={pRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={doPhoto}/><button onClick={()=>pRef.current?.click()} disabled={uploading} className="w-full py-4 border-2 border-dashed border-amber-400 rounded-xl font-bold text-sm text-amber-700 flex items-center justify-center gap-2">{uploading?<><II.Spin s={18} className="animate-spin"/>Uploading...</>:vPhoto?<>✓ Photo Uploaded</>:<><II.Cam s={20}/>{jS==="customer-not-reachable"?"घर की Photo Upload":"Refusal Form Upload"}</>}</button>{vPhoto&&<img src={vPhoto} alt="" className="mt-3 rounded-xl max-h-40 w-full object-cover"/>}</div><div><label className="block text-sm font-semibold text-amber-900 mb-1.5">Reason *</label><textarea className="w-full px-4 py-3 border border-amber-300 rounded-xl text-sm bg-white" rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Write reason..."/></div><BB onClick={doNonComplete} disabled={!vPhotoUrl||!reason} color="#b45309">Submit</BB></div>}
+          {jS!=="completed"&&jS!=="pending"&&<div className="mt-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl space-y-4"><p className="font-bold text-amber-900">Proof Required</p><div><input ref={pRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={doPhoto}/><button onClick={()=>pRef.current?.click()} disabled={uploading} className="w-full py-4 border-2 border-dashed border-amber-400 rounded-xl font-bold text-sm text-amber-700 flex items-center justify-center gap-2">{uploading?<><II.Spin s={18} className="animate-spin"/>Uploading...</>:vPhoto?<>✓ Photo Uploaded</>:<><II.Cam s={20}/>{jS==="customer-not-reachable"?"घर की Photo Upload":"Refusal Form Upload"}</>}</button>{vPhoto&&<img src={vPhoto} alt="" className="mt-3 rounded-xl max-h-40 w-full object-cover"/>}</div><div><label className="block text-sm font-semibold text-amber-900 mb-1.5">Reason *</label><textarea className="w-full px-4 py-3 border border-amber-300 rounded-xl text-sm bg-white" rows={3} value={reason} onChange={e=>setReason(e.target.value)} placeholder="Write reason..."/></div><BB onClick={doNonComplete} disabled={!vPhotoUrl||!reason} color="#b45309">Submit</BB></div>}
         </div>}
 
         {step==="checklist"&&<FullChecklist onDone={data=>{setCl(data);setStep("payment");}}/>}
@@ -742,7 +745,7 @@ function Recon({emps,jobs,onBack}){
   },[jobs,dateFrom,dateTo,fEmp,fPay]);
 
   const c=inRange.filter(j=>j.status==="completed");
-  const p=inRange.filter(j=>j.status==="pending"||j.status==="in-progress");
+  const p=inRange.filter(j=>j.status==="pending");
   const nr=inRange.filter(j=>j.status==="customer-not-reachable");
   const rf=inRange.filter(j=>j.status==="customer-refused");
 
@@ -783,7 +786,7 @@ function Recon({emps,jobs,onBack}){
     const upi=ec.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
     const already=ec.filter(j=>j.payment_type==="already-paid").reduce((s,j)=>s+(+j.payment_amount||0),0);
     const rate=ej.length?Math.round(ec.length/ej.length*100):0;
-    return{e,tot:ej.length,done:ec.length,pend:ej.filter(j=>j.status==="pending"||j.status==="in-progress").length,nr:ej.filter(j=>j.status==="customer-not-reachable").length,rf:ej.filter(j=>j.status==="customer-refused").length,cash,upi,already,hoses,rate,rev:cash+upi+already};
+    return{e,tot:ej.length,done:ec.length,pend:ej.filter(j=>j.status==="pending").length,nr:ej.filter(j=>j.status==="customer-not-reachable").length,rf:ej.filter(j=>j.status==="customer-refused").length,cash,upi,already,hoses,rate,rev:cash+upi+already};
   }).filter(s=>s.tot>0).sort((a,b)=>b.rev-a.rev);
 
   const fmtDate=d=>new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short"});
