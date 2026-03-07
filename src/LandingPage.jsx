@@ -114,21 +114,21 @@ function LandingPage({ onLogin }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              {icon:"🔍", title:"Mandatory Safety Inspections & Compliance",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>), title:"Mandatory Safety Inspections & Compliance",
                desc:"Consumer safety serves as the fundamental cornerstone of our operations. We execute mandatory LPG safety audits as stipulated by regulatory bodies. Our certified technicians perform rigorous evaluations of the entire gas connection including the regulator, safety hose, and stove assembly to ensure statutory compliance and mitigate potential hazards."},
-              {icon:"🔄", title:"Dormant Connection Revival Program",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>), title:"Dormant Connection Revival Program",
                desc:"We provide a specialized service focused on the secure reactivation of dormant LPG connections. By conducting comprehensive safety verifications and updating consumer documentation, we ensure every connection is compliant and operational, supporting OMCs in achieving their 70% active consumer coverage targets."},
-              {icon:"🏕️", title:"Consumer Safety Camps & Education",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>), title:"Consumer Safety Camps & Education",
                desc:"Proactive education is vital to risk mitigation. We conduct localized LPG Safety Camps to enhance consumer awareness regarding safety protocols, equipment maintenance, and emergency procedures. These initiatives are designed to foster a culture of safety and significantly reduce the likelihood of domestic accidents."},
-              {icon:"📱", title:"Digital Field Reporting & Data Management",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>), title:"Digital Field Reporting & Data Management",
                desc:"To maintain high standards of accountability, our team utilizes a dedicated mobile application for field reporting. This tool enables the efficient recording of inspection results and consumer contact updates, which are subsequently synchronized with OMC systems to ensure data integrity and streamlined compliance reporting."},
-              {icon:"👔", title:"Certified & Professional Field Force",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0112 0v2"/><path d="M8.5 14.5L10 17l2-3 2 3 1.5-2.5"/></svg>), title:"Certified & Professional Field Force",
                desc:"Professionalism and consumer trust are essential to our service delivery. Our field officers are highly trained, adhere to a strict Uniform Dress Code, and carry official identification, ensuring a credible and secure experience for the consumer during every safety engagement."},
-              {icon:"🤝", title:"OMC Partnership & Bulk Programmes",
+              {icon:(<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 16v1a2 2 0 01-2 2H3a2 2 0 01-2-2V7a2 2 0 012-2h2"/><rect x="8" y="2" width="14" height="14" rx="2"/><path d="M11 10h5M11 13h3"/></svg>), title:"OMC Partnership & Bulk Programmes",
                desc:"We partner directly with HPCL, IOCL, and BPCL to deliver large-scale mandatory inspection drives across districts. Our operational capacity supports high-volume campaigns with end-to-end field management, daily digital reporting, and compliance documentation aligned to OMC requirements."},
             ].map((s,i)=>(
               <div key={i} className="group bg-white rounded-sm border p-7 hover:shadow-xl transition-all duration-300 hover:-translate-y-1" style={{borderColor:LC.border, borderLeftWidth:"3px", borderLeftColor: i%2===0 ? LC.cobalt : LC.green}}>
-                <div className="text-3xl mb-5">{s.icon}</div>
+                <div className="mb-5 w-12 h-12 rounded-lg flex items-center justify-center" style={{background: i%2===0 ? "rgba(30,111,217,0.1)" : "rgba(16,185,129,0.1)", color: i%2===0 ? LC.cobalt : LC.green}}>{s.icon}</div>
                 <h3 className="font-extrabold text-base mb-3 leading-snug tracking-tight" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>{s.title}</h3>
                 <p className="text-sm leading-relaxed" style={{color:LC.slate}}>{s.desc}</p>
               </div>
@@ -144,9 +144,9 @@ function LandingPage({ onLogin }) {
           <h2 className="text-2xl font-extrabold text-white mb-10" style={{fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Working With India's Leading Oil Companies</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-20">
             {[
-              {name:"HPCL", full:"Hindustan Petroleum", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/hp-logo.png"},
-              {name:"IOCL", full:"Indian Oil Corporation", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/indian-oil.png"},
-              {name:"BPCL", full:"Bharat Petroleum", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/Bharat_Petroleum-Logo.wine.png"},
+              {name:"HPCL", full:"Hindustan Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/5/54/HPCL_logo.png/200px-HPCL_logo.png"},
+              {name:"IOCL", full:"Indian Oil Corporation", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Indian_Oil_Logo.svg/200px-Indian_Oil_Logo.svg.png"},
+              {name:"BPCL", full:"Bharat Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Bharat_Petroleum_Logo.svg/200px-Bharat_Petroleum_Logo.svg.png"},
             ].map((omc,i)=>(
               <div key={i} className="flex flex-col items-center gap-3">
                 <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center shadow-lg p-3">
