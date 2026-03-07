@@ -374,7 +374,7 @@ function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
   const nrC=jobs.filter(j=>j.status==="customer-not-reachable").length;
   const rfC=jobs.filter(j=>j.status==="customer-refused").length;
 
-  const JobCard=({j})=>{const isPend=j.status==="pending";return(
+  const JobCard=({j})=>{const isPend=normalizeStatus(j.status)==="pending";return(
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${isPend?"border-l-4":"border-slate-200"}`} style={isPend?{borderLeftColor:C.red}:{}}>
       <div className="p-4">
         {j.consumer_id&&<div className="mb-3 px-3 py-2 rounded-lg flex items-center gap-2" style={{background:"#eef2ff",border:"2px solid #c7d2fe"}}><span className="text-xs font-bold text-indigo-500 uppercase tracking-wide">CUID</span><span className="text-xl font-extrabold text-indigo-800 font-mono tracking-widest">{j.consumer_id}</span></div>}
@@ -738,21 +738,6 @@ function Inspect({job,onDone,onBack,onUpd,show}){
       </div>
     </div>
   );
-}
-
-/*─── CSV Export Helpers ─────────────────────────────────────*/
-function csvEscape(v){
-  if(v==null||v===undefined)return"";
-  const s=String(v);
-  if(s.includes(",")||s.includes("\n")||s.includes("\""))return`"${s.replace(/"/g,'""')}"`;
-  return s;
-}
-function buildCsv(rows){return rows.map(r=>r.map(csvEscape).join(",")).join("\n");}
-function downloadCsv(filename,rows){
-  const blob=new Blob(["\uFEFF"+buildCsv(rows)],{type:"text/csv;charset=utf-8;"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");a.href=url;a.download=filename;a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
 /*─── Reconciliation ─────────────────────────────────────────*/
