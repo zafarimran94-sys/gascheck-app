@@ -4,14 +4,17 @@ import { APP, AppLogo } from "./AppShared";
 /*─── Public Landing Page ─────────────────────────────────────*/
 // Brand palette extracted from logo
 const LC = {
-  navy:    "#0f2557",  // deep navy primary
-  navyD:  "#091a3e",  // darker navy for depth
-  navyL:  "#1a3a7a",  // lighter navy
-  flame:  "#e8360d",  // flame red/orange accent from logo
-  flameL: "#ff5733",  // lighter flame
-  gold:   "#f5a623",  // warm gold accent
-  cream:  "#fdf8f3",  // warm off-white bg
+  navy:    "#0d1b2e",  // deep shield navy — primary
+  navyD:  "#080f1a",  // darkest navy — footer/depth
+  navyL:  "#1a3a5c",  // lighter navy — gradients
+  cobalt: "#1e6fd9",  // cobalt blue — shield border / secondary
+  cobaltL:"#3d8ef0",  // lighter cobalt — hover states
+  green:  "#1db954",  // emerald drop — accent / CTA
+  greenL: "#25d366",  // lighter green — WhatsApp / success
+  bg:     "#f0f5ff",  // cool blue-tinted off-white bg
+  card:   "#ffffff",
   slate:  "#64748b",
+  border: "#dbe4f0",
 };
 
 function LandingPage({ onLogin }) {
@@ -25,16 +28,16 @@ function LandingPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen" style={{background:LC.cream, fontFamily:"'Georgia', serif"}}>
+    <div className="min-h-screen" style={{background:LC.bg, fontFamily:"'Georgia', serif"}}>
 
       {/* ── Nav ── */}
-      <nav className="sticky top-0 z-40 border-b" style={{background:"rgba(253,248,243,0.95)", backdropFilter:"blur(12px)", borderColor:"#e5ddd5"}}>
+      <nav className="sticky top-0 z-40 border-b" style={{background:"rgba(240,245,255,0.96)", backdropFilter:"blur(12px)", borderColor:LC.border}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <AppLogo s={38}/>
             <div>
               <div className="text-base font-extrabold leading-tight tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>LPG Inspection Care</div>
-              <div className="text-[10px] tracking-widest uppercase" style={{color:LC.flame}}>Statutory Compliance Partner</div>
+              <div className="text-[10px] tracking-widest uppercase" style={{color:LC.cobalt}}>Statutory Compliance Partner</div>
             </div>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
@@ -43,7 +46,7 @@ function LandingPage({ onLogin }) {
                 {["Services","Partners","Contact"][i]}
               </a>
             )}
-            <button onClick={onLogin} className="px-4 py-2 text-white text-xs font-bold tracking-widest uppercase rounded transition hover:opacity-90" style={{background:LC.flame}}>
+            <button onClick={onLogin} className="px-4 py-2 text-white text-xs font-bold tracking-widest uppercase rounded transition hover:opacity-90" style={{background:LC.green}}>
               Staff Login
             </button>
           </div>
@@ -51,27 +54,26 @@ function LandingPage({ onLogin }) {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden" style={{background:`linear-gradient(160deg, ${LC.navyD} 0%, ${LC.navy} 55%, ${LC.navyL} 100%)`}}>
+      <section className="relative overflow-hidden" style={{background:`linear-gradient(160deg, ${LC.navyD} 0%, ${LC.navy} 50%, ${LC.navyL} 100%)`}}>
         {/* Geometric texture */}
         <div className="absolute inset-0 opacity-5" style={{backgroundImage:"repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%)", backgroundSize:"30px 30px"}}/>
         {/* Flame accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-1" style={{background:`linear-gradient(90deg, ${LC.flame}, ${LC.gold}, ${LC.flame})`}}/>
+        <div className="absolute top-0 left-0 right-0 h-1" style={{background:`linear-gradient(90deg, ${LC.cobalt}, ${LC.green}, ${LC.cobalt})`}}/>
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-32 relative">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm text-xs font-bold tracking-widest uppercase mb-8 border" style={{borderColor:LC.flame, color:LC.flame, background:"rgba(232,54,13,0.08)"}}>
-              ✦ Trusted Statutory Compliance Partner
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm text-xs font-bold tracking-widest uppercase mb-8 border" style={{borderColor:LC.cobalt, color:LC.cobaltL, background:"rgba(30,111,217,0.12)"}}>
+              Trusted Statutory Compliance Partner
             </div>
             <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-6 tracking-tight" style={{fontFamily:"'Georgia', serif"}}>
-              Professional LPG<br/>
-              Safety Inspections<br/>
-              <span style={{color:LC.gold}}>For Every Home.</span>
+              Professional LPG Safety Inspections<br/>
+              <span style={{color:LC.green}}>for Every Home.</span>
             </h1>
             <p className="text-lg mb-10 leading-relaxed max-w-xl" style={{color:"rgba(255,255,255,0.7)"}}>
               Ensuring the safety of your family by delivering high-quality, government mandated LPG safety inspections and consumer awareness programs across Rajasthan since 2014.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#contact" className="px-8 py-4 text-sm font-bold tracking-widest uppercase text-white rounded-sm text-center transition hover:opacity-90" style={{background:LC.flame}}>
+              <a href="#contact" className="px-8 py-4 text-sm font-bold tracking-widest uppercase text-white rounded-sm text-center transition hover:opacity-90" style={{background:LC.green}}>
                 Enquire Now
               </a>
               <a href="#services" className="px-8 py-4 text-sm font-bold tracking-widest uppercase rounded-sm text-center transition hover:bg-white/10 border" style={{color:"white", borderColor:"rgba(255,255,255,0.3)"}}>
@@ -91,7 +93,7 @@ function LandingPage({ onLogin }) {
               {n:"100%",      l:"Compliance"},
             ].map((s,i)=>(
               <div key={i} className="text-center">
-                <div className="text-2xl sm:text-3xl font-extrabold" style={{color:LC.gold, fontFamily:"'Georgia', serif"}}>{s.n}</div>
+                <div className="text-2xl sm:text-3xl font-extrabold" style={{color:LC.green, fontFamily:"'Georgia', serif"}}>{s.n}</div>
                 <div className="text-xs tracking-widest uppercase mt-1" style={{color:"rgba(255,255,255,0.5)"}}>{s.l}</div>
               </div>
             ))}
@@ -100,12 +102,12 @@ function LandingPage({ onLogin }) {
       </section>
 
       {/* ── Services ── */}
-      <section id="services" className="py-20 sm:py-28" style={{background:LC.cream}}>
+      <section id="services" className="py-20 sm:py-28" style={{background:LC.bg}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="mb-14">
-            <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.flame}}>What We Do</div>
+            <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.cobalt}}>What We Do</div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Our Services</h2>
-            <div className="mt-3 w-16 h-1 rounded" style={{background:LC.flame}}/>
+            <div className="mt-3 w-16 h-1 rounded" style={{background:LC.green}}/>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
@@ -122,7 +124,7 @@ function LandingPage({ onLogin }) {
               {icon:"🤝", title:"OMC Partnership & Bulk Programmes",
                desc:"We partner directly with HPCL, IOCL, and BPCL to deliver large-scale mandatory inspection drives across districts. Our operational capacity supports high-volume campaigns with end-to-end field management, daily digital reporting, and compliance documentation aligned to OMC requirements."},
             ].map((s,i)=>(
-              <div key={i} className="group bg-white rounded-sm border p-7 hover:shadow-xl transition-all duration-300 hover:-translate-y-1" style={{borderColor:"#e5ddd5", borderLeftWidth:"3px", borderLeftColor: i%2===0 ? LC.flame : LC.navy}}>
+              <div key={i} className="group bg-white rounded-sm border p-7 hover:shadow-xl transition-all duration-300 hover:-translate-y-1" style={{borderColor:LC.border, borderLeftWidth:"3px", borderLeftColor: i%2===0 ? LC.cobalt : LC.green}}>
                 <div className="text-3xl mb-5">{s.icon}</div>
                 <h3 className="font-extrabold text-base mb-3 leading-snug tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>{s.title}</h3>
                 <p className="text-sm leading-relaxed" style={{color:LC.slate}}>{s.desc}</p>
@@ -135,19 +137,20 @@ function LandingPage({ onLogin }) {
       {/* ── OMC Partners ── */}
       <section id="omcs" className="py-16 border-y" style={{background:LC.navy, borderColor:LC.navyD}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <div className="text-xs font-bold tracking-widest uppercase mb-2" style={{color:LC.gold}}>Trusted Partner To Indian OMCs</div>
+          <div className="text-xs font-bold tracking-widest uppercase mb-2" style={{color:LC.green}}>Trusted Partner To Indian OMCs</div>
           <h2 className="text-2xl font-extrabold text-white mb-10" style={{fontFamily:"'Georgia', serif"}}>Working With India's Leading Oil Companies</h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-20">
             {[
-              {name:"HPCL", full:"Hindustan Petroleum", color:"#005baa"},
-              {name:"IOCL", full:"Indian Oil Corporation", color:"#e2231a"},
-              {name:"BPCL", full:"Bharat Petroleum", color:"#f7941d"},
+              {name:"HPCL", full:"Hindustan Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/5/54/HPCL_logo.png/200px-HPCL_logo.png"},
+              {name:"IOCL", full:"Indian Oil Corporation", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Indian_Oil_Logo.svg/200px-Indian_Oil_Logo.svg.png"},
+              {name:"BPCL", full:"Bharat Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Bharat_Petroleum_Logo.svg/200px-Bharat_Petroleum_Logo.svg.png"},
             ].map((omc,i)=>(
-              <div key={i} className="flex flex-col items-center gap-2">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-white font-extrabold text-lg shadow-lg" style={{background:omc.color, fontFamily:"'Georgia', serif"}}>
-                  {omc.name}
+              <div key={i} className="flex flex-col items-center gap-3">
+                <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center shadow-lg p-3">
+                  <img src={omc.logo} alt={omc.name} className="w-full h-full object-contain" onError={e=>{e.target.style.display='none';e.target.nextSibling.style.display='flex';}} />
+                  <div className="hidden w-full h-full items-center justify-center text-white font-extrabold text-lg rounded-lg" style={{background: i===0?"#005baa":i===1?"#e2231a":"#f7941d"}}>{omc.name}</div>
                 </div>
-                <div className="text-xs tracking-wide" style={{color:"rgba(255,255,255,0.5)"}}>{omc.full}</div>
+                <div className="text-xs font-semibold tracking-wide" style={{color:"rgba(255,255,255,0.6)"}}>{omc.full}</div>
               </div>
             ))}
           </div>
@@ -155,14 +158,14 @@ function LandingPage({ onLogin }) {
       </section>
 
       {/* ── Contact / Enquiry ── */}
-      <section id="contact" className="py-20 sm:py-28" style={{background:LC.cream}}>
+      <section id="contact" className="py-20 sm:py-28" style={{background:LC.bg}}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-start">
             {/* Left copy */}
             <div>
-              <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.flame}}>Get In Touch</div>
+              <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.cobalt}}>Get In Touch</div>
               <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Partner With Us</h2>
-              <div className="w-12 h-1 rounded mb-6" style={{background:LC.flame}}/>
+              <div className="w-12 h-1 rounded mb-6" style={{background:LC.green}}/>
               <p className="text-sm leading-relaxed mb-8" style={{color:LC.slate}}>
                 Whether you are an Oil Marketing Company seeking a reliable field partner, a gas agency requiring compliance drives, or a housing society looking to ensure resident safety — we are equipped to deliver at scale.
               </p>
@@ -174,11 +177,11 @@ function LandingPage({ onLogin }) {
                   {icon:"🕐", label:"Operating Since", val:"2014"},
                 ].map((c,i)=>(
                   <div key={i} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-sm flex items-center justify-center text-lg flex-shrink-0" style={{background:LC.navy}}>
+                    <div className="w-10 h-10 rounded-sm flex items-center justify-center text-lg flex-shrink-0" style={{background:LC.cobalt}}>
                       {c.icon}
                     </div>
                     <div>
-                      <div className="text-[10px] font-bold tracking-widest uppercase" style={{color:LC.flame}}>{c.label}</div>
+                      <div className="text-[10px] font-bold tracking-widest uppercase" style={{color:LC.cobalt}}>{c.label}</div>
                       <div className="text-sm font-semibold" style={{color:LC.navy}}>{c.val}</div>
                     </div>
                   </div>
@@ -187,19 +190,19 @@ function LandingPage({ onLogin }) {
             </div>
 
             {/* Enquiry form */}
-            <div className="bg-white rounded-sm border p-8 shadow-sm" style={{borderColor:"#e5ddd5"}}>
+            <div className="bg-white rounded-sm border p-8 shadow-sm" style={{borderColor:LC.border}}>
               <div className="text-base font-extrabold mb-6" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Send an Enquiry</div>
               {submitted ? (
                 <div className="text-center py-10">
                   <div className="text-4xl mb-3">✅</div>
                   <h3 className="font-extrabold text-lg mb-2" style={{color:LC.navy}}>Message Sent!</h3>
                   <p className="text-sm" style={{color:LC.slate}}>We'll get back to you shortly on WhatsApp.</p>
-                  <button onClick={()=>setSubmitted(false)} className="mt-6 text-xs font-bold tracking-widest uppercase underline" style={{color:LC.flame}}>Send Another</button>
+                  <button onClick={()=>setSubmitted(false)} className="mt-6 text-xs font-bold tracking-widest uppercase underline" style={{color:LC.cobalt}}>Send Another</button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {[
-                    {label:"Name / Company Name", key:"name", type:"text", ph:"Your name or organisation"},
+                    {label:"Name/Company Name", key:"name", type:"text", ph:"Your name or organisation"},
                     {label:"Email Address", key:"email", type:"email", ph:"you@company.com"},
                     {label:"Phone Number", key:"phone", type:"tel", ph:"+91 XXXXX XXXXX"},
                   ].map(f=>(
@@ -211,7 +214,7 @@ function LandingPage({ onLogin }) {
                         value={form[f.key]}
                         onChange={e=>setForm({...form,[f.key]:e.target.value})}
                         className="w-full px-4 py-3 border text-sm focus:outline-none focus:ring-2 rounded-sm"
-                        style={{borderColor:"#e5ddd5", fontFamily:"inherit"}}
+                        style={{borderColor:LC.border, fontFamily:"inherit"}}
                       />
                     </div>
                   ))}
@@ -221,9 +224,9 @@ function LandingPage({ onLogin }) {
                       value={form.type}
                       onChange={e=>setForm({...form,type:e.target.value})}
                       className="w-full px-4 py-3 border text-sm focus:outline-none rounded-sm bg-white"
-                      style={{borderColor:"#e5ddd5", fontFamily:"inherit"}}
+                      style={{borderColor:LC.border, fontFamily:"inherit"}}
                     >
-                      {["Mandatory Safety Inspections","Dormant Connection Revival","Consumer Safety Camps","OMC Partnership","General Enquiry"].map(t=><option key={t}>{t}</option>)}
+                      {["Mandatory Safety Inspections","Safety Camps","General"].map(t=><option key={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
@@ -234,7 +237,7 @@ function LandingPage({ onLogin }) {
                       value={form.message}
                       onChange={e=>setForm({...form,message:e.target.value})}
                       className="w-full px-4 py-3 border text-sm focus:outline-none rounded-sm resize-none"
-                      style={{borderColor:"#e5ddd5", fontFamily:"inherit"}}
+                      style={{borderColor:LC.border, fontFamily:"inherit"}}
                     />
                   </div>
                   <button
@@ -254,7 +257,7 @@ function LandingPage({ onLogin }) {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-8 border-t" style={{background:LC.navyD, borderColor:LC.navy}}>
+      <footer className="py-8 border-t" style={{background:LC.navyD, borderColor:"rgba(30,111,217,0.3)"}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <AppLogo s={28}/>
@@ -263,7 +266,7 @@ function LandingPage({ onLogin }) {
           <p className="text-[11px] tracking-wide" style={{color:"rgba(255,255,255,0.3)"}}>
             © {new Date().getFullYear()} LPG Inspection Care. Serving Rajasthan since 2014.
           </p>
-          <button onClick={onLogin} className="text-xs font-bold tracking-widest uppercase underline" style={{color:LC.flame}}>Staff Login</button>
+          <button onClick={onLogin} className="text-xs font-bold tracking-widest uppercase underline" style={{color:LC.green}}>Staff Login</button>
         </div>
       </footer>
     </div>
