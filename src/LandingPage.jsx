@@ -9,8 +9,8 @@ const LC = {
   navyL:  "#1a3a5c",  // lighter navy — gradients
   cobalt: "#1e6fd9",  // cobalt blue — shield border / secondary
   cobaltL:"#3d8ef0",  // lighter cobalt — hover states
-  green:  "#1db954",  // emerald drop — accent / CTA
-  greenL: "#25d366",  // lighter green — WhatsApp / success
+  green:  "#10B981",  // emerald drop — accent / CTA
+  greenL: "#10B981",  // lighter green — WhatsApp / success
   bg:     "#f0f5ff",  // cool blue-tinted off-white bg
   card:   "#ffffff",
   slate:  "#64748b",
