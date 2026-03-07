@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { APP, AppLogo } from "./AppShared";
 
 /*─── Public Landing Page ─────────────────────────────────────*/
@@ -28,7 +28,10 @@ function LandingPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen" style={{background:LC.bg, fontFamily:"'Georgia', serif"}}>
+    <>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <div className="min-h-screen" style={{background:LC.bg, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>
 
       {/* ── Nav ── */}
       <nav className="sticky top-0 z-40 border-b" style={{background:"rgba(240,245,255,0.96)", backdropFilter:"blur(12px)", borderColor:LC.border}}>
@@ -36,7 +39,7 @@ function LandingPage({ onLogin }) {
           <div className="flex items-center gap-3">
             <AppLogo s={38}/>
             <div>
-              <div className="text-base font-extrabold leading-tight tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>LPG Inspection Care</div>
+              <div className="text-base font-extrabold leading-tight tracking-tight" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>LPG Inspection Care</div>
               <div className="text-[10px] tracking-widest uppercase" style={{color:LC.cobalt}}>Statutory Compliance Partner</div>
             </div>
           </div>
@@ -65,7 +68,7 @@ function LandingPage({ onLogin }) {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-sm text-xs font-bold tracking-widest uppercase mb-8 border" style={{borderColor:LC.cobalt, color:LC.cobaltL, background:"rgba(30,111,217,0.12)"}}>
               Trusted Statutory Compliance Partner
             </div>
-            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-6 tracking-tight" style={{fontFamily:"'Georgia', serif"}}>
+            <h1 className="text-4xl sm:text-6xl font-extrabold text-white leading-tight mb-6 tracking-tight" style={{fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>
               Professional LPG Safety Inspections<br/>
               <span style={{color:LC.green}}>for Every Home.</span>
             </h1>
@@ -93,7 +96,7 @@ function LandingPage({ onLogin }) {
               {n:"100%",      l:"Compliance"},
             ].map((s,i)=>(
               <div key={i} className="text-center">
-                <div className="text-2xl sm:text-3xl font-extrabold" style={{color:LC.green, fontFamily:"'Georgia', serif"}}>{s.n}</div>
+                <div className="text-2xl sm:text-3xl font-extrabold" style={{color:LC.green, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>{s.n}</div>
                 <div className="text-xs tracking-widest uppercase mt-1" style={{color:"rgba(255,255,255,0.5)"}}>{s.l}</div>
               </div>
             ))}
@@ -106,7 +109,7 @@ function LandingPage({ onLogin }) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="mb-14">
             <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.cobalt}}>What We Do</div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Our Services</h2>
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Our Services</h2>
             <div className="mt-3 w-16 h-1 rounded" style={{background:LC.green}}/>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,7 +129,7 @@ function LandingPage({ onLogin }) {
             ].map((s,i)=>(
               <div key={i} className="group bg-white rounded-sm border p-7 hover:shadow-xl transition-all duration-300 hover:-translate-y-1" style={{borderColor:LC.border, borderLeftWidth:"3px", borderLeftColor: i%2===0 ? LC.cobalt : LC.green}}>
                 <div className="text-3xl mb-5">{s.icon}</div>
-                <h3 className="font-extrabold text-base mb-3 leading-snug tracking-tight" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>{s.title}</h3>
+                <h3 className="font-extrabold text-base mb-3 leading-snug tracking-tight" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>{s.title}</h3>
                 <p className="text-sm leading-relaxed" style={{color:LC.slate}}>{s.desc}</p>
               </div>
             ))}
@@ -138,7 +141,7 @@ function LandingPage({ onLogin }) {
       <section id="omcs" className="py-16 border-y" style={{background:LC.navy, borderColor:LC.navyD}}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <div className="text-xs font-bold tracking-widest uppercase mb-2" style={{color:LC.green}}>Trusted Partner To Indian OMCs</div>
-          <h2 className="text-2xl font-extrabold text-white mb-10" style={{fontFamily:"'Georgia', serif"}}>Working With India's Leading Oil Companies</h2>
+          <h2 className="text-2xl font-extrabold text-white mb-10" style={{fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Working With India's Leading Oil Companies</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-20">
             {[
               {name:"HPCL", full:"Hindustan Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/5/54/HPCL_logo.png/200px-HPCL_logo.png"},
@@ -164,7 +167,7 @@ function LandingPage({ onLogin }) {
             {/* Left copy */}
             <div>
               <div className="text-xs font-bold tracking-widest uppercase mb-3" style={{color:LC.cobalt}}>Get In Touch</div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Partner With Us</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Partner With Us</h2>
               <div className="w-12 h-1 rounded mb-6" style={{background:LC.green}}/>
               <p className="text-sm leading-relaxed mb-8" style={{color:LC.slate}}>
                 Whether you are an Oil Marketing Company seeking a reliable field partner, a gas agency requiring compliance drives, or a housing society looking to ensure resident safety — we are equipped to deliver at scale.
@@ -191,7 +194,7 @@ function LandingPage({ onLogin }) {
 
             {/* Enquiry form */}
             <div className="bg-white rounded-sm border p-8 shadow-sm" style={{borderColor:LC.border}}>
-              <div className="text-base font-extrabold mb-6" style={{color:LC.navy, fontFamily:"'Georgia', serif"}}>Send an Enquiry</div>
+              <div className="text-base font-extrabold mb-6" style={{color:LC.navy, fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Send an Enquiry</div>
               {submitted ? (
                 <div className="text-center py-10">
                   <div className="text-4xl mb-3">✅</div>
@@ -270,6 +273,7 @@ function LandingPage({ onLogin }) {
         </div>
       </footer>
     </div>
+    </>
   );
 }
 
