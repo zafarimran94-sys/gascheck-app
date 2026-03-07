@@ -144,9 +144,9 @@ function LandingPage({ onLogin }) {
           <h2 className="text-2xl font-extrabold text-white mb-10" style={{fontFamily:"'Inter', 'Segoe UI', sans-serif"}}>Working With India's Leading Oil Companies</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-20">
             {[
-              {name:"HPCL", full:"Hindustan Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/5/54/HPCL_logo.png/200px-HPCL_logo.png"},
-              {name:"IOCL", full:"Indian Oil Corporation", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Indian_Oil_Logo.svg/200px-Indian_Oil_Logo.svg.png"},
-              {name:"BPCL", full:"Bharat Petroleum", logo:"https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Bharat_Petroleum_Logo.svg/200px-Bharat_Petroleum_Logo.svg.png"},
+              {name:"HPCL", full:"Hindustan Petroleum", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/hp-logo.png"},
+              {name:"IOCL", full:"Indian Oil Corporation", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/indian-oil.png"},
+              {name:"BPCL", full:"Bharat Petroleum", logo:"https://ybyvhoyiifjfvxcuaeku.supabase.co/storage/v1/object/public/assets/Bharat_Petroleum-Logo.wine.png"},
             ].map((omc,i)=>(
               <div key={i} className="flex flex-col items-center gap-3">
                 <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center shadow-lg p-3">
