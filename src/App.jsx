@@ -358,15 +358,21 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
 
 /*─── Employee View ──────────────────────────────────────────*/
 function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
-  const[q,setQ]=useState("");const[pg,setPg]=useState(0);const[sort,setSort]=useState("newest");
+  const[q,setQ]=useState("");const[pg,setPg]=useState(0);const[sort,setSort]=useState("newest");const[statusTab,setStatusTab]=useState("pending");
   if(!emp)return<div className="min-h-screen flex items-center justify-center" style={{background:C.bg}}><div className="text-center p-8 bg-white rounded-xl shadow"><p className="text-slate-500 mb-4">Employee not found</p>{onBack&&<button onClick={onBack} className="px-6 py-2 text-white rounded-lg text-sm" style={{background:C.pri}}>Back</button>}</div></div>;
   const all=useMemo(()=>{let r=[...jobs];if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql));}if(sort==="newest")r.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));else if(sort==="oldest")r.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));else if(sort==="status"){const o={pending:0,"customer-not-reachable":1,"customer-refused":2,completed:3};r.sort((a,b)=>(o[a.status]??9)-(o[b.status]??9));}return r;},[jobs,q,sort]);
-  const pend=all.filter(j=>j.status==="pending");
-  const other=all.filter(j=>j.status!=="pending");
-  const shown=[...pend,...other];
+  const shown=useMemo(()=>{
+    if(statusTab==="pending")return all.filter(j=>normalizeStatus(j.status)==="pending");
+    if(statusTab==="completed")return all.filter(j=>j.status==="completed");
+    if(statusTab==="nr")return all.filter(j=>j.status==="customer-not-reachable");
+    if(statusTab==="refused")return all.filter(j=>j.status==="customer-refused");
+    return all;
+  },[all,statusTab]);
   const paged=shown.slice(pg*PAGE_SZ,(pg+1)*PAGE_SZ);
-  const pendC=jobs.filter(j=>j.status==="pending").length;
+  const pendC=jobs.filter(j=>normalizeStatus(j.status)==="pending").length;
   const doneC=jobs.filter(j=>j.status==="completed").length;
+  const nrC=jobs.filter(j=>j.status==="customer-not-reachable").length;
+  const rfC=jobs.filter(j=>j.status==="customer-refused").length;
 
   const JobCard=({j})=>{const isPend=j.status==="pending";return(
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${isPend?"border-l-4":"border-slate-200"}`} style={isPend?{borderLeftColor:C.red}:{}}>
@@ -390,12 +396,24 @@ function EmpView({emp,jobs,onStart,onBack,onLogout,isDirectLogin}){
       <div className="px-5 pt-4 pb-8" style={{background:`linear-gradient(135deg,${C.pri},#1a3a7a)`}}>
         <div className="max-w-2xl mx-auto"><div className="flex justify-between items-start mb-4">{onBack?<button onClick={onBack} className="flex items-center gap-1.5 text-white/70 hover:text-white text-sm"><II.Back s={18}/>Admin</button>:<div/>}{isDirectLogin&&<button onClick={onLogout} className="p-2.5 bg-white/10 rounded-lg hover:bg-white/20"><II.Out s={18} className="text-white"/></button>}</div>
           <div className="flex items-center gap-3 mb-5"><AppLogo s={40}/><div><h1 className="text-xl font-extrabold text-white">Namaste, {emp.name} 🙏</h1><p className="text-blue-200/60 text-sm">आज के काम / Today's Work</p></div></div>
-          <div className="flex gap-4"><div className="bg-white/10 backdrop-blur rounded-xl px-5 py-3 text-white flex-1 text-center"><div className="text-3xl font-extrabold">{pendC}</div><div className="text-xs uppercase opacity-70 font-semibold mt-0.5">Pending</div></div><div className="bg-emerald-500/90 rounded-xl px-5 py-3 text-white flex-1 text-center"><div className="text-3xl font-extrabold">{doneC}</div><div className="text-xs uppercase opacity-70 font-semibold mt-0.5">Done</div></div></div>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              {key:"pending", label:"Pending", count:pendC, bg:"bg-white/10", active:"bg-amber-400"},
+              {key:"completed", label:"Done", count:doneC, bg:"bg-white/10", active:"bg-emerald-500"},
+              {key:"refused", label:"Refused", count:rfC, bg:"bg-white/10", active:"bg-rose-500"},
+              {key:"nr", label:"NR", count:nrC, bg:"bg-white/10", active:"bg-red-600"},
+            ].map(t=>(
+              <button key={t.key} onClick={()=>{setStatusTab(t.key);setPg(0);}} className={`rounded-xl px-2 py-3 text-white text-center transition ${statusTab===t.key?t.active:"bg-white/10 hover:bg-white/20"}`}>
+                <div className="text-2xl font-extrabold">{t.count}</div>
+                <div className="text-[10px] uppercase font-bold opacity-80 mt-0.5">{t.label}</div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div className="max-w-2xl mx-auto px-5 pb-10 -mt-4">
         <div className="flex gap-2 mb-5"><div className="relative flex-1"><II.Search s={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"/><input className="w-full pl-10 pr-4 py-3.5 bg-white rounded-xl border border-slate-200 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search name, phone, CUID..." value={q} onChange={e=>{setQ(e.target.value);setPg(0);}}/></div><select className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-600 min-w-[90px]" value={sort} onChange={e=>{setSort(e.target.value);setPg(0);}}><option value="newest">Latest ↓</option><option value="oldest">Oldest ↑</option><option value="status">Status</option></select></div>
-        {paged.length===0&&!q&&<div className="bg-white rounded-xl p-12 text-center shadow-sm"><div className="text-5xl mb-3">🎉</div><h3 className="text-xl font-bold mb-1">बधाई हो! All Done!</h3><p className="text-slate-500">No pending jobs</p></div>}
+        {paged.length===0&&!q&&<div className="bg-white rounded-xl p-12 text-center shadow-sm"><div className="text-5xl mb-3">{statusTab==="pending"?"🎉":"📋"}</div><h3 className="text-xl font-bold mb-1">{statusTab==="pending"?"बधाई हो! All Done!":"No jobs here"}</h3><p className="text-slate-500">{statusTab==="pending"?"No pending jobs":`No ${statusTab==="nr"?"not reachable":statusTab} jobs`}</p></div>}
         {paged.length===0&&q&&<div className="bg-white rounded-xl p-8 text-center shadow-sm"><p className="text-slate-400">No results for "{q}"</p></div>}
         <div className="space-y-3">{paged.map(j=><JobCard key={j.id} j={j}/>)}</div>
         <Pager page={pg} setPage={setPg} total={shown.length}/>
