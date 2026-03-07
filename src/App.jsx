@@ -740,6 +740,21 @@ function Inspect({job,onDone,onBack,onUpd,show}){
   );
 }
 
+/*─── CSV Export Helpers ─────────────────────────────────────*/
+function csvEscape(v){
+  if(v==null||v===undefined)return"";
+  const s=String(v);
+  if(s.includes(",")||s.includes("\n")||s.includes("\""))return`"${s.replace(/"/g,'""')}"`;
+  return s;
+}
+function buildCsv(rows){return rows.map(r=>r.map(csvEscape).join(",")).join("\n");}
+function downloadCsv(filename,rows){
+  const blob=new Blob(["\uFEFF"+buildCsv(rows)],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 /*─── Reconciliation ─────────────────────────────────────────*/
 function Recon({emps,jobs,onBack}){
   const today=new Date().toISOString().slice(0,10);
@@ -808,6 +823,30 @@ function Recon({emps,jobs,onBack}){
   }).filter(s=>s.tot>0).sort((a,b)=>b.rev-a.rev);
 
   const fmtDate=d=>new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short"});
+  const fmtDt=iso=>iso?new Date(iso).toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+  const rangeLabel=`${dateFrom}_to_${dateTo}`;
+
+  const exportRawCsv=()=>{
+    const header=["Job ID","CUID","Customer Name","Phone","Address","Area","Gas Company","Gas Agency","Assigned Employee","Status","Payment Type","Payment Amount (INR)","Hose Installed","GPS Lat","GPS Lng","Date Added","Arrival Time","Completed Time","Receipt Number","Status Reason"];
+    const rows=inRange.map(j=>{
+      const emp=emps.find(e=>e.id===j.assigned_to);
+      return[j.id,j.consumer_id||"",j.customer_name||"",j.customer_phone||"",j.address||"",j.area||"",j.gas_company_name||"",j.gas_agency_name||"",emp?.name||"Unassigned",statusMap[normalizeStatus(j.status)]||j.status||"",j.payment_type||"",j.payment_amount||"",j.hose_installed?"Yes":"No",j.gps_lat||"",j.gps_lng||"",fmtDt(j.created_at),fmtDt(j.arrival_time),fmtDt(j.completed_time),j.receipt_number||"",j.status_reason||""];
+    });
+    const esc=v=>{const s=String(v==null?"":v);return(s.includes(",")||s.includes("\n")||s.includes('"'))?`"${s.replace(/"/g,'""')}"`  :s;};
+    const csv=([header,...rows]).map(r=>r.map(esc).join(",")).join("\n");
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`raw_jobs_${rangeLabel}.csv`;a.click();
+  };
+
+  const exportEmpCsv=()=>{
+    const header=["Employee","Area","Phone","Total Jobs","Completed","Pending","Not Reachable","Refused","Completion Rate (%)","Cash (INR)","UPI (INR)","Already Paid (INR)","Total Revenue (INR)","Hose Installs","Hose Revenue (INR)","Avg per Completed Job (INR)"];
+    const rows=es.map(s=>[s.e.name,s.e.area||"",s.e.phone||"",s.tot,s.done,s.pend,s.nr,s.rf,s.rate,s.cash,s.upi,s.already,s.rev,s.hoses,s.hoses*HOSE_AMT,s.done?Math.round(s.rev/s.done):0]);
+    const totRow=["TOTAL","","",es.reduce((a,s)=>a+s.tot,0),es.reduce((a,s)=>a+s.done,0),es.reduce((a,s)=>a+s.pend,0),es.reduce((a,s)=>a+s.nr,0),es.reduce((a,s)=>a+s.rf,0),es.length?Math.round(es.reduce((a,s)=>a+s.done,0)/Math.max(1,es.reduce((a,s)=>a+s.tot,0))*100):0,ct,ut,ap,total,hoseJobs.length,hoseRev,avgPerJob];
+    const esc=v=>{const s=String(v==null?"":v);return(s.includes(",")||s.includes("\n")||s.includes('"'))?`"${s.replace(/"/g,'""')}"`  :s;};
+    const csv=([header,...rows,totRow]).map(r=>r.map(esc).join(",")).join("\n");
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`employee_summary_${rangeLabel}.csv`;a.click();
+  };
 
   return(
     <div className="min-h-screen" style={{background:C.bg}}>
@@ -820,7 +859,13 @@ function Recon({emps,jobs,onBack}){
               <h1 className="text-2xl font-extrabold text-white">Reconciliation Dashboard</h1>
               <p className="text-blue-200/60 text-sm mt-0.5">{new Date().toLocaleDateString("en-IN",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</p>
             </div>
-            <button onClick={()=>window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white/15 text-white rounded-lg text-sm font-semibold hover:bg-white/25"><II.Print s={16}/>Print</button>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <div className="flex flex-col gap-1.5">
+                <button onClick={exportRawCsv} disabled={inRange.length===0} className="flex items-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-white rounded-lg text-xs font-bold whitespace-nowrap transition"><II.File s={13}/>Raw Jobs CSV ({inRange.length})</button>
+                <button onClick={exportEmpCsv} disabled={es.length===0} className="flex items-center gap-2 px-3 py-2 bg-violet-500 hover:bg-violet-400 disabled:opacity-40 text-white rounded-lg text-xs font-bold whitespace-nowrap transition"><II.User s={13}/>Employee Summary CSV ({es.length})</button>
+              </div>
+              <button onClick={()=>window.print()} className="flex items-center gap-2 px-4 py-2.5 bg-white/15 text-white rounded-lg text-sm font-semibold hover:bg-white/25"><II.Print s={16}/>Print</button>
+            </div>
           </div>
           {/* Filters */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
