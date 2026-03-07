@@ -176,7 +176,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
   const agencies=useMemo(()=>[...new Set(jobs.map(j=>j.gas_agency_name).filter(Boolean))].sort(),[jobs]);
   const filtered=useMemo(()=>{let r=jobs;if(q){const ql=q.toLowerCase();r=r.filter(j=>(j.address||"").toLowerCase().includes(ql)||(j.customer_name||"").toLowerCase().includes(ql)||(j.customer_phone||"").includes(ql)||(j.consumer_id||"").toLowerCase().includes(ql)||(j.area||"").toLowerCase().includes(ql));}if(fAg)r=r.filter(j=>j.gas_agency_name===fAg);if(fDC)r=r.filter(j=>j.completed_time&&j.completed_time.startsWith(fDC));if(fDA)r=r.filter(j=>j.created_at&&j.created_at.startsWith(fDA));if(fEmp)r=r.filter(j=>j.assigned_to===fEmp);if(fSt)r=r.filter(j=>j.status===fSt);return r;},[jobs,q,fAg,fDC,fDA,fEmp,fSt]);
   const paged=filtered.slice(pg*PAGE_SZ,(pg+1)*PAGE_SZ);
-  const tot=jobs.length,done=jobs.filter(j=>j.status==="completed").length,pend=jobs.filter(j=>j.status==="pending").length;
+  const done=jobs.filter(j=>j.status==="completed").length,pend=jobs.filter(j=>normalizeStatus(j.status)==="pending").length;
   const cash=jobs.filter(j=>j.payment_type==="cash").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const upi=jobs.filter(j=>j.payment_type==="upi").reduce((s,j)=>s+(+j.payment_amount||0),0);
   const eName=id=>emps.find(e=>e.id===id)?.name||"—";
@@ -225,7 +225,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
     <div className="min-h-screen" style={{background:C.bg}}>
       <header className="sticky top-0 z-30 border-b border-slate-200" style={{background:"rgba(255,255,255,0.92)",backdropFilter:"blur(12px)"}}><div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center"><div className="flex items-center gap-3"><AppLogo s={36}/><div><h1 className="text-lg font-extrabold leading-tight" style={{color:C.pri}}>{APP}</h1><p className="text-[11px] text-slate-500">Welcome, {prof?.full_name||"Admin"}</p></div></div><div className="flex gap-2"><button onClick={onRecon} className="hidden sm:flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-semibold hover:opacity-90" style={{background:C.pri}}><II.File s={16}/>Reconciliation</button><button onClick={onRecon} className="sm:hidden p-2 text-white rounded-lg" style={{background:C.pri}}><II.File s={18}/></button><button onClick={onLogout} className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"><II.Out s={18} className="text-slate-500"/></button></div></div></header>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">{[{l:"Total",v:tot,bg:C.pri,click:()=>{setFSt("");setTab("jobs");}},{l:"Done",v:done,bg:"#059669",click:()=>{setFSt("completed");setTab("jobs");setPg(0);showF||setShowF(false);}},{l:"Cash",v:`₹${cash}`,bg:"#b45309",click:null},{l:"UPI",v:`₹${upi}`,bg:"#7c3aed",click:null}].map((s,i)=><div key={i} onClick={s.click||undefined} className={`rounded-xl p-4 text-white ${s.click?"cursor-pointer hover:opacity-90 active:scale-95 transition":""}`} style={{background:s.bg}}><div className="text-[10px] font-bold uppercase tracking-wider opacity-70">{s.l}</div><div className="text-2xl font-extrabold mt-1">{s.v}</div>{s.l==="Done"&&<div className="text-xs opacity-60">Pending: {pend}{fSt==="completed"?" · filtered ✓":""}</div>}</div>)}</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">{[{l:"Pending",v:pend,bg:C.pri,click:()=>{setFSt("");setTab("jobs");}},{l:"Done",v:done,bg:"#059669",click:()=>{setFSt("completed");setTab("jobs");setPg(0);showF||setShowF(false);}},{l:"Cash",v:`₹${cash}`,bg:"#b45309",click:null},{l:"UPI",v:`₹${upi}`,bg:"#7c3aed",click:null}].map((s,i)=><div key={i} onClick={s.click||undefined} className={`rounded-xl p-4 text-white ${s.click?"cursor-pointer hover:opacity-90 active:scale-95 transition":""}`} style={{background:s.bg}}><div className="text-[10px] font-bold uppercase tracking-wider opacity-70">{s.l}</div><div className="text-2xl font-extrabold mt-1">{s.v}</div>{s.l==="Done"&&fSt==="completed"&&<div className="text-xs opacity-60">filtered ✓</div>}</div>)}</div>
         <Tabs tabs={[{k:"jobs",l:`Jobs (${filtered.length})`},{k:"employees",l:`Team (${emps.length})`},{k:"audit",l:"Audit"}]} a={tab} set={t=>{setTab(t);setAuditPg(0);}}/>
 
         {tab==="jobs"&&<div className="mt-4">
@@ -273,7 +273,8 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
             if(auditPhoto==="no"&&j.validation_photo_url)return false;
             return true;
           });
-          const gpsOk=auditJobs.filter(j=>j.gps_lat&&j.gps_lng).length;
+          const gpsOk=auditJobs.filter(j=>normalizeStatus(j.status)!=="pending"&&j.gps_lat&&j.gps_lng).length;
+          const gpsExpected=auditJobs.filter(j=>normalizeStatus(j.status)!=="pending").length;
           const photoOk=auditJobs.filter(j=>j.validation_photo_url).length;
           const auditPaged=auditJobs.slice(auditPg*PAGE_SZ,(auditPg+1)*PAGE_SZ);
           return(
@@ -282,7 +283,7 @@ function Admin({emps,jobs,onAddEmp,onAddJob,onBulk,onUpdJob,onDelJob,onDelEmp,on
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {[
                   {l:"Total in view",v:auditJobs.length,bg:"bg-slate-700"},
-                  {l:"GPS captured",v:`${gpsOk} / ${auditJobs.length}`,bg:gpsOk===auditJobs.length?"bg-emerald-600":"bg-amber-500"},
+                  {l:"GPS captured",v:`${gpsOk} / ${gpsExpected}`,bg:gpsOk===gpsExpected?"bg-emerald-600":"bg-amber-500"},
                   {l:"Photos uploaded",v:`${photoOk} / ${auditJobs.filter(j=>j.status!=="completed"&&j.status!=="pending").length}`,bg:photoOk===auditJobs.filter(j=>j.validation_photo_url!==undefined&&j.status!=="pending").length?"bg-emerald-600":"bg-amber-500"},
                 ].map((s,i)=><div key={i} className={`${s.bg} text-white rounded-xl p-3 text-center`}><div className="text-lg font-extrabold">{s.v}</div><div className="text-[10px] uppercase opacity-60 mt-0.5">{s.l}</div></div>)}
               </div>
