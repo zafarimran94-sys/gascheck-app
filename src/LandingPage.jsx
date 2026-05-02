@@ -23,7 +23,7 @@ function LandingPage({ onLogin }) {
 
   const sendWA = () => {
     const msg = `New Enquiry — LPG Inspection Care\n\nName: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\nEnquiry Type: ${form.type}\nMessage: ${form.message}`;
-    window.open(`https://wa.me/91XXXXXXXXXX?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(`https://wa.me/917877216167?text=${encodeURIComponent(msg)}`, "_blank");
     setSubmitted(true);
   };
 
@@ -176,7 +176,7 @@ function LandingPage({ onLogin }) {
                 {[
                   {icon:"📞", label:"Phone", val:"+91-7877216167"},
                   {icon:"📧", label:"Email", val:"info@lpginspectioncare.com"},
-                  {icon:"📍", label:"Office", val:"RB-4, Pink tower Lal kothi Shopping Centre, Jaipur 302015"},
+                  {icon:"📍", label:"Office", val:"B-4, Pink tower Lal kothi Shopping Centre, Jaipur 302015"},
                   {icon:"🕐", label:"Operating Since", val:"2016"},
                 ].map((c,i)=>(
                   <div key={i} className="flex items-center gap-4">
