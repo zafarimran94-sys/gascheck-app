@@ -174,10 +174,10 @@ function LandingPage({ onLogin }) {
               </p>
               <div className="space-y-4">
                 {[
-                  {icon:"📞", label:"Phone", val:"+91-XXXXX-XXXXX"},
+                  {icon:"📞", label:"Phone", val:"+91-7877216167"},
                   {icon:"📧", label:"Email", val:"info@lpginspectioncare.com"},
-                  {icon:"📍", label:"Office", val:"Rajasthan, India"},
-                  {icon:"🕐", label:"Operating Since", val:"2014"},
+                  {icon:"📍", label:"Office", val:"RB-4, Pink tower Lal kothi Shopping Centre, Jaipur 302015"},
+                  {icon:"🕐", label:"Operating Since", val:"2016"},
                 ].map((c,i)=>(
                   <div key={i} className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-sm flex items-center justify-center text-lg flex-shrink-0" style={{background:LC.cobalt}}>
